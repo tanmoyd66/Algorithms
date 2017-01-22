@@ -73,8 +73,8 @@ public class GraphFactory {
 		return graph1;
 	}
 	
-	public static Graph<String> getCLRSPGraph1() {
-		Graph<String> graph1 = new Graph<String>("getCLRSPGraph1");
+	public static ShortestPaths<String> getCLRSPGraph1() {
+		ShortestPaths<String> graph1 = new ShortestPaths<String>("getCLRSPGraph1");
 		graph1.addEdge("s", "t", 10.0);
 		graph1.addEdge("s", "y", 5.0);
 		graph1.addEdge("t", "y", 2.0);
@@ -88,4 +88,27 @@ public class GraphFactory {
 		return graph1;
 	}
 
+	public static NetworkFlow<String> getCLRNetworkFlowGraph1() {
+		NetworkFlow<String> graph1 = new NetworkFlow<String>("CLRNetworkFlowGraph1");
+		graph1.addEdge("s", "v1", 16.0);
+		graph1.addEdge("s", "v2", 13.0);
+		graph1.addEdge("v1","v3", 12.0);
+		graph1.addEdge("v2","v1", 4.0);
+		graph1.addEdge("v2","v4", 14.0);
+		graph1.addEdge("v3","v2", 9.0);
+		graph1.addEdge("v3","t",  20.0);
+		graph1.addEdge("v4","v3", 7.0);
+		graph1.addEdge("v4","t",  4.0);
+		return graph1;
+	}
+
+	public static NetworkFlow<String> getCLRNetworkFlowGraph2() {
+		NetworkFlow<String> graph1 = new NetworkFlow<String>("CLRNetworkFlowGraph2");
+		graph1.addEdge("s", "u", 100.0);
+		graph1.addEdge("s", "v", 100.0);
+		graph1.addEdge("u", "t", 100.0);
+		graph1.addEdge("u", "v", 1.0);
+		graph1.addEdge("v", "t", 100.0);
+		return graph1;
+	}
 }
