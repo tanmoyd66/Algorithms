@@ -12,7 +12,9 @@ import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 
-public class NetworkFlow<T extends Comparable<T>> extends Graph<T> {
+import trd.algorithms.graphs.Graph.Edge;
+
+public class NetworkFlow<T extends Comparable<T>> extends ShortestPaths<T> {
 	public NetworkFlow(String name) {
 		super(name);
 	}
@@ -34,14 +36,14 @@ public class NetworkFlow<T extends Comparable<T>> extends Graph<T> {
 		sb.append("\n"); sb.append(name);
 		sb.append("\n------------------------------");
 		for (Map.Entry<Integer,HashMap<Integer,Edge<T>>> me : meSet) {
-			sb.append(String.format("\n[%2s(%d)]: ", invVertMap.get(me.getKey()), me.getKey()));
+			sb.append(String.format("\n[%2s(%2d)]: ", invVertMap.get(me.getKey()), me.getKey()));
 			HashMap<Integer,Edge<T>> edgeMap = me.getValue();
 			if (edgeMap != null) {
 				Set<Map.Entry<Integer, Edge<T>>> edgeSet = edgeMap.entrySet();
 				for (Map.Entry<Integer, Edge<T>> meEdge : edgeSet) {
 					if (!fPrintGraphEdgesOnly || (fPrintGraphEdgesOnly && meEdge.getValue().type == EdgeType.Graph)) {
-						sb.append(String.format("[%2s:%3.0f/%3.0f-%s] ", 
-								invVertMap.get(meEdge.getKey()), meEdge.getValue().flow, meEdge.getValue().weight, EdgeType(meEdge.getValue())));
+						sb.append(String.format("[%2s:%3.0f/%3.0f-%s:%d] ", 
+								invVertMap.get(meEdge.getKey()), meEdge.getValue().flow, meEdge.getValue().weight, EdgeType(meEdge.getValue()), meEdge.getValue().label));
 
 					}
 				}
@@ -52,7 +54,7 @@ public class NetworkFlow<T extends Comparable<T>> extends Graph<T> {
 	}
 
 	public boolean DFSVisit(AlgoSpecificNode<T> dfsNode, Boolean all, Function<Edge<T>, Boolean> qualifies, Integer endVertexId,
-			Map<Integer,AlgoSpecificNode<T>> nodeMap, Stack<AlgoSpecificNode<T>> nodeStack, List<List<T>> paths) {
+			Map<Integer,AlgoSpecificNode<T>> nodeMap, Stack<AlgoSpecificNode<T>> nodeStack, List<List<Edge<T>>> paths) {
 		boolean fContinue = true;
 		
 		dfsNode.color = Color.gray;
@@ -79,8 +81,7 @@ public class NetworkFlow<T extends Comparable<T>> extends Graph<T> {
 					path.add(stackNode.node.nodeName);
 				}
 				Collections.reverse(path);
-				paths.add(path);						
-				//System.out.println(path);
+				paths.add(this.VertexPathToEdgePath(path));						
 				if (!all)
 					return false;
 			}
@@ -96,8 +97,8 @@ public class NetworkFlow<T extends Comparable<T>> extends Graph<T> {
 		return true;
 	}
 
-	public List<List<T>> GetPathsDFSRecursive(T start, T end, Boolean all, Function<Edge<T>, Boolean> qualifies) {
-		List<List<T>> 						paths 		= new ArrayList<List<T>>();
+	public List<List<Edge<T>>> GetPathsDFSRecursive(T start, T end, Boolean all, Function<Edge<T>, Boolean> qualifies) {
+		List<List<Edge<T>>> 				paths 		= new ArrayList<List<Edge<T>>>();
 		Integer 							startVertex = getVertexId(start), endVertex = getVertexId(end);
 		Stack<AlgoSpecificNode<T>>  		nodeStack 	= new Stack<AlgoSpecificNode<T>>();
 		Map<Integer,AlgoSpecificNode<T>> 	nodeMap 	= InitializeVertexMap(1, 0.0, 0.0);
@@ -106,8 +107,8 @@ public class NetworkFlow<T extends Comparable<T>> extends Graph<T> {
 		return paths;
 	}
 	
-	public List<List<T>> GetPathsDFSStackBased(T start, T end, Boolean all, Function<Edge<T>, Boolean> qualifies) {
-		List<List<T>> 						pathList 	= new ArrayList<List<T>>();
+	public List<List<Edge<T>>> GetPathsDFSStackBased(T start, T end, Boolean all, Function<Edge<T>, Boolean> qualifies) {
+		List<List<Edge<T>>> 				pathList 	= new ArrayList<List<Edge<T>>>();
 		Integer 							startVertex = getVertexId(start), endVertex = getVertexId(end);
 		Stack<AlgoSpecificNode<T>>  		dfsStack 	= new Stack<AlgoSpecificNode<T>>();
 		Map<Integer,AlgoSpecificNode<T>> 	nodeMap 	= InitializeVertexMap(1, 0.0, 0.0);
@@ -149,7 +150,7 @@ public class NetworkFlow<T extends Comparable<T>> extends Graph<T> {
 								path.add(getVertexById(stackNode.node.node));
 						}
 						Collections.reverse(path);
-						pathList.add(path);						
+						pathList.add(this.VertexPathToEdgePath(path));						
 						//System.out.println(path);
 					} else {
 
@@ -172,7 +173,7 @@ public class NetworkFlow<T extends Comparable<T>> extends Graph<T> {
 	}
 
 	// Get Paths by Breadth First Search
-	public List<List<T>> GetPathsBFS(T start, T end, Boolean all, Function<Edge<T>, Boolean> qualifies) {
+	public List<List<Edge<T>>> GetPathsBFS(T start, T end, Boolean all, Function<Edge<T>, Boolean> qualifies) {
 		
 		int 							 time  		= 1;
 		Queue<AlgoSpecificNode<T>> 		 bfsQueue 	= new ConcurrentLinkedQueue<AlgoSpecificNode<T>>();
@@ -180,7 +181,7 @@ public class NetworkFlow<T extends Comparable<T>> extends Graph<T> {
 		Integer							 startNode	= getVertexId(start);
 		Integer							 endNode	= getVertexId(end);
 		AlgoSpecificNode<T> 			 thisNode 	= new AlgoSpecificNode<>(new Node<>(this, startNode), null, time);
-		List<List<T>>					 paths		= new ArrayList<List<T>>();
+		List<List<Edge<T>>>				 paths		= new ArrayList<List<Edge<T>>>();
 		
 		bfsQueue.add(thisNode); 
 		nodeMap.put(thisNode.node.node, thisNode);
@@ -207,7 +208,7 @@ public class NetworkFlow<T extends Comparable<T>> extends Graph<T> {
 						path.add(getVertexById(node.node.node));
 					}
 					Collections.reverse(path);
-					paths.add(path);
+					paths.add(this.VertexPathToEdgePath(path));
 					fContinue = all;
 				} else {
 					
@@ -229,51 +230,65 @@ public class NetworkFlow<T extends Comparable<T>> extends Graph<T> {
 		int cmp = edge.weight.compareTo(flow + edge.flow); 
 		if (cmp >= 0) {
 
-			// Update the flow of the current edge
-			edge.flow += flow;
-			
-			// if it has no more capacity, delete it
-			if (cmp == 0) {
-				//removeEdge(edge);
-			} 
-			
-			// Add a reverse flow for cancellation at a later time
+			// Add a reverse flow for cancellation at a later time. 
+			// If one does not exist, create a new Augmented edge, with capacity equal to 0
 			Edge<T> reverseEdge = this.getEdgeByStartEnd(edge.target, edge.source);
 			if (reverseEdge == null) {
-				reverseEdge = new Edge<>(edge.graph, edge.target, edge.source, flow, EdgeType.Augmented);
+				reverseEdge = new Edge<>(edge.graph, edge.target, edge.source, 0.0, EdgeType.Augmented);
 				reverseEdge.flow = 0.0;
 				_addEdgeInternal(edge.target, edge.source, reverseEdge);
-			} else {
+			}
+			
+			// Now add the flow
+			if (edge.type == EdgeType.Graph) {
+				// When adding flow to a graph edge, increase capacity of the the augmented edge 
+				edge.flow += flow;
 				reverseEdge.weight += flow;
+			} else {
+				// When adding flow to a augmented edge, reduce flow thru the reverse graph edge
+				edge.flow += flow;
+				reverseEdge.flow -= flow;
 			}
 		}
 	}
 
 	// Basic Ford Fulkerson
-	public static enum NetworkFlowVariations {FordFulkerson, EdmondsKarp};
+	public static enum NetworkFlowVariations {FordFulkerson_DFSStackBased, FordFulkerson_DFSRecursive, FordFulkerson_BFS, EdmondsKarp};
+	private List<Edge<T>> GetPathByAlgorithm(T start, T end, NetworkFlowVariations nfv) {
+		List<List<Edge<T>>> paths;
+		switch(nfv) {
+			case FordFulkerson_DFSStackBased: { 
+				paths = GetPathsDFSStackBased(start, end, false, (x) -> x.flow < x.weight);
+				return paths.isEmpty() ? null : paths.get(0);
+			}
+			case FordFulkerson_DFSRecursive: { 
+				paths = GetPathsDFSStackBased(start, end, false, (x) -> x.flow < x.weight);
+				return paths.isEmpty() ? null : paths.get(0);
+			}
+			case FordFulkerson_BFS: { 
+				paths = GetPathsBFS(start, end, false, (x) -> x.flow < x.weight);
+				return paths.isEmpty() ? null : paths.get(0);
+			}
+			case EdmondsKarp: { 
+				List<Edge<T>> path = ShortestPath_Dijkstra(start, end, (x) -> x.flow < x.weight, (x) -> 1.0);
+				return path.isEmpty() ? null : path;
+			}
+			default:
+				return null;
+		}
+	}
+	
 	public int FordFulkerson(T start, T end, NetworkFlowVariations algo) {
 		int flow  = 0;
 		int count = 0;
 		
-		System.out.printf("%s\n", this.toString());
+		//System.out.printf("%s\n", this.toString());
 		while (true) {
-			List<List<T>> paths = algo == NetworkFlowVariations.FordFulkerson ?
-										GetPathsDFSRecursive(start, end, false, (x) -> x.flow < x.weight):
-										GetPathsBFS(start, end, false, (x) -> x.flow < x.weight);
-			if (paths.isEmpty()) {
+			List<Edge<T>> edges = GetPathByAlgorithm(start, end, algo);
+			if (edges == null || edges.isEmpty()) {
 				return flow;
 			} else {
-				List<Edge<T>> edges = new ArrayList<Edge<T>>();
-
-				// Convert the path into a list of edges
-				List<T> path 	= paths.get(0);
-				T prev = path.get(0);
-				for (int i = 1; i < path.size(); i++) {
-					Edge<T> thisEdge = getEdgeByStartEnd(prev, path.get(i));
-					edges.add(thisEdge);
-					prev = path.get(i);
-				}
-				
+				// A path from start to end exists
 				// Find the minimal flow thru this edge-list
 				Double pathFlow = edges.stream().map(x -> (x.weight - x.flow)).reduce(Double.MAX_VALUE, (x, y) -> Math.min(x, y));
 				if (pathFlow > 0) {
@@ -290,11 +305,120 @@ public class NetworkFlow<T extends Comparable<T>> extends Graph<T> {
 			//System.out.printf("%s\n", this.toString());
 		}
 	}
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Push Relabel Algorithm:
+	private void InitializePreflow(T start, Map<Integer,AlgoSpecificNode<T>> nodeMap) {
+		
+		// We will use start as the label to track the vertex height
+		// And weight to track the amount of flow in node
+		
+		// Start vertex has height = |V|
+		AlgoSpecificNode<T> startVertex = nodeMap.get(getVertexId(start));
+		startVertex.start = nodeMap.size();
+		
+		// Flood all the vertices adjacent to s with flows from s into them
+		Collection<Edge<T>> adjOfStart = this.getEdgesByVertexId(startVertex.node.node);
+		for (Edge<T> edge : adjOfStart) {
+			AlgoSpecificNode<T> childOfStart = nodeMap.get(edge.target);
+			
+			// Flood the edge
+			AddFlow(edge, edge.weight);
+			childOfStart.node.weight = edge.weight;
+		}
+	}
+	
+	private AlgoSpecificNode<T> GetOverflowingVertex(T start, T end, Map<Integer,AlgoSpecificNode<T>> nodeMap) {
+		for (Map.Entry<Integer,AlgoSpecificNode<T>> me : nodeMap.entrySet()) {
+			
+			// The start vertex cannot be a overflow vertex 
+			if (me.getValue().node.nodeName.compareTo(start) == 0 ||
+				me.getValue().node.nodeName.compareTo(end) == 0)
+				continue;
+			
+			// Find the first vertex with an overflow. That should be good enough
+			if (me.getValue().node.weight > 0) {
+				return me.getValue();
+			}
+		}
+		return null;
+	}
+	
+	private AlgoSpecificNode<T> Push(Map<Integer,AlgoSpecificNode<T>> nodeMap, AlgoSpecificNode<T> node) {
+		Collection<Edge<T>> adjOfNode = this.getEdgesByVertexId(node.node.node);
+		for (Edge<T> edge : adjOfNode) {
+			
+			// If the edge is full we cannot add any more
+			if (edge.flow.compareTo(edge.weight) >= 0)
+				continue;
+			
+			// Push is only possible downwards 
+			AlgoSpecificNode<T> targetNode = nodeMap.get(edge.target);
+			if (targetNode.start < node.start) {
+				
+				// The amount we can push is the minimal of the excess flow in the vertext and that of the edge
+				Double flowAmount = Math.min(edge.weight - edge.flow, node.node.weight);
+				if (flowAmount > 0) {
+					
+					// Increase the capacity of the target node and reduce capacity of this node
+					targetNode.node.weight += flowAmount;
+					node.node.weight -= flowAmount;
+					
+					// Reduce the flow thru this edge
+					AddFlow(edge, flowAmount);
+					
+					// We are done for now
+					return targetNode;
+				}
+			}
+		}
+		return null;
+	}
+
+	private void Relabel(Map<Integer,AlgoSpecificNode<T>> nodeMap, AlgoSpecificNode<T> node) {
+		
+		// Find minimal height of all adjacent vertices
+		int minHeightOfAdjacent = Integer.MAX_VALUE;
+		Collection<Edge<T>> adjOfNode = this.getEdgesByVertexId(node.node.node);
+		for (Edge<T> edge : adjOfNode) {
+			
+			if (edge.flow.compareTo(edge.weight) >= 0)
+				continue;
+			
+			AlgoSpecificNode<T> targetNode = nodeMap.get(edge.target);
+			minHeightOfAdjacent = Math.min(minHeightOfAdjacent, targetNode.start);
+		}
+		
+		// Update height of our node to 1 + minimum height (height always increases by 1)
+		node.start = minHeightOfAdjacent + 1;
+	}
+	
+	public Double PushRelabel(T start, T end) {
+		Map<Integer,AlgoSpecificNode<T>> nodeMap 	= InitializeVertexMap(1, 0.0, 0.0);
+		
+		// Initialize Pre-flow 
+		InitializePreflow(start, nodeMap);
+		
+		// Loop until there are no overflowing vertex
+		while (true) {
+			AlgoSpecificNode<T> overflowNode = GetOverflowingVertex(start, end, nodeMap);
+			if (overflowNode == null)
+				break;
+			
+			// Either push or relabel, until there is nothing to push
+			AlgoSpecificNode<T> pushedToNode = Push(nodeMap, overflowNode);
+			if (pushedToNode == null)
+				Relabel(nodeMap, overflowNode);
+		}
+				
+		return nodeMap.get(getVertexId(end)).node.weight;
+	}
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	public static void main(String[] args) {
 		if (true) {
 			NetworkFlow<String> graph5 = GraphFactory.getCLRNetworkFlowGraph2();
 			String start = "s", end = "t";
-			List<List<String>> pathList = graph5.GetPathsDFSRecursive(start, end, true, null);
+			List<List<Edge<String>>> pathList = graph5.GetPathsDFSRecursive(start, end, true, null);
 			System.out.printf("Paths from %s to %s found by DFS-Stack Based are: %s\n", start, end, pathList);
 			pathList = graph5.GetPathsDFSStackBased(start, end, true, null);
 			System.out.printf("Paths from %s to %s found by DFS Recursive   are: %s\n", start, end, pathList);
@@ -303,21 +427,38 @@ public class NetworkFlow<T extends Comparable<T>> extends Graph<T> {
 		}
 		
 		if (true) {
-			NetworkFlow<String> graph5 = GraphFactory.getCLRNetworkFlowGraph1();
+			NetworkFlow<String> graph5;
 			String start = "s", end = "t";
-			int flow = graph5.FordFulkerson(start, end, NetworkFlowVariations.FordFulkerson);
-			graph5.fPrintGraphEdgesOnly = true;
-			System.out.printf("Total flow by Ford-Fulkerson: %d%s\n", flow, graph5);
-			graph5 = GraphFactory.getCLRNetworkFlowGraph1();
-			flow = graph5.FordFulkerson(start, end, NetworkFlowVariations.EdmondsKarp);
-			System.out.printf("Total flow by Edmonds-Karp  : %d%s\n", flow, graph5);
+			for (NetworkFlowVariations nfv : NetworkFlowVariations.values()) {
+				graph5 = GraphFactory.getCLRNetworkFlowGraph1();
+				int flow = graph5.FordFulkerson(start, end, nfv);
+				graph5.fPrintGraphEdgesOnly = true;
+				System.out.printf("Total flow by %s: %d%s\n", nfv.toString(), flow, graph5);
+			}
 		}
-//		if (true) {
-//			NetworkFlow<String> graph6 = GraphFactory.getCLRNetworkFlowGraph2();
-//			String start = "s", end = "t";
-//			int flow = graph6.FordFulkerson(start, end, NetworkFlowVariations.FordFulkerson);
-//			graph6.fPrintGraphEdgesOnly = true;
-//			System.out.printf("Total flow: %d%s\n", flow, graph6);
-//		}
+		if (true) {
+			NetworkFlow<String> graph6;
+			String start = "s", end = "t";
+			for (NetworkFlowVariations nfv : NetworkFlowVariations.values()) {
+				graph6 = GraphFactory.getCLRNetworkFlowGraph2();
+				int flow = graph6.FordFulkerson(start, end, nfv);
+				graph6.fPrintGraphEdgesOnly = true;
+				System.out.printf("Total flow by %s: %d%s\n", nfv.toString(), flow, graph6);
+			}
+		}
+		if (true) {
+			NetworkFlow<String> graph7;
+			String start = "s", end = "t";
+			graph7 = GraphFactory.getCLRNetworkFlowGraph2();
+			graph7.fPrintGraphEdgesOnly = true;
+			System.out.printf("Total flow by %s: %f%s\n", "Push Relabel", graph7.PushRelabel(start, end), graph7);
+		}
+		if (true) {
+			NetworkFlow<String> graph8;
+			String start = "s", end = "t";
+			graph8 = GraphFactory.getCLRNetworkFlowGraph1();
+			graph8.fPrintGraphEdgesOnly = true;
+			System.out.printf("Total flow by %s: %f%s\n", "Push Relabel", graph8.PushRelabel(start, end), graph8);
+		}
 	}
 }

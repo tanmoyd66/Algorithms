@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import trd.algorithms.datastructures.DynamicSet;
 import trd.algorithms.linkedlists.SinglyLinkedList;
@@ -30,6 +31,7 @@ public class Graph<T extends Comparable<T>> {
 		Double  	flow;
 		EdgeType	type;
 		Graph<T>	graph;
+		int			label;
 		
 		public Edge(Graph<T> graph, Integer source, Integer target, Double weight, EdgeType type) {
 			this.graph = graph; this.source = source; this.target = target; this.weight = weight; this.type = type; this.flow = 0.0;
@@ -41,7 +43,9 @@ public class Graph<T extends Comparable<T>> {
 			this.graph = graph; this.source = source; this.target = target; this.weight = 0.0; this.type = EdgeType.Graph; this.flow = 0.0;
 		}
 		public String toString() {
-			return String.format("(%s,%s:%4.2f/%4.2f) ", graph.getVertexById(source), graph.getVertexById(target), flow, weight);
+			String Flow = this.flow.compareTo(0.0) != 0 || this.flow.compareTo(0.0) != 0 ? String.format("%4.2f/%4.2f", this.flow, this.weight) : "";
+			String Label = label != 0 ? String.format("%d", label) : "";
+			return String.format("(%s,%s:%s:%s) ", graph.getVertexById(source), graph.getVertexById(target), Flow, Label);
 		}		
 	}
 
@@ -59,7 +63,7 @@ public class Graph<T extends Comparable<T>> {
 		}
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
-			sb.append(String.format("(%s%s)", graph.getVertexById(node), weight == 0.0 ? "": String.format(":-%4.2f", weight)));
+			sb.append(String.format("(%s%s)", nodeName, weight == 0.0 ? "": String.format(":%3.2f", weight)));
 			return sb.toString();
 		}
 	}
@@ -70,9 +74,10 @@ public class Graph<T extends Comparable<T>> {
 		AlgoSpecificNode<T>		parent;
 		int						start;
 		int						end;
-
+		int						label;
+		
 		public String getColorString() {
-			return color == Color.white ? "-W" : color == Color.gray ? "-G" : "-B";
+			return color == Color.white ? "W" : color == Color.gray ? "G" : "B";
 		}		
 		AlgoSpecificNode(Node<T> node, AlgoSpecificNode<T> parent, int start) {
 			this.node = node; this.parent = parent; this.start = start; this.end = start;
@@ -80,7 +85,9 @@ public class Graph<T extends Comparable<T>> {
 		}
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
-			sb.append(String.format("[%s:%d,%d:%s]", node, start, end, getColorString()));
+			String startEnd = start > 0 || end > 0 ? String.format(":%d-%d", start, end) : "";
+			String Parent   = parent != null ? String.format(":%s", parent.node.nodeName) : "";
+			sb.append(String.format("[%s%s%s:%s]", node, startEnd, Parent, getColorString()));
 			return sb.toString();
 		}
 	}
@@ -248,7 +255,7 @@ public class Graph<T extends Comparable<T>> {
 		sb.append("\n"); sb.append(name);
 		sb.append("\n------------------------------");
 		for (Map.Entry<Integer,HashMap<Integer,Edge<T>>> me : meSet) {
-			sb.append(String.format("\n[%2s(%d)]: ", invVertMap.get(me.getKey()), me.getKey()));
+			sb.append(String.format("\n[%2s(%2d)]: ", invVertMap.get(me.getKey()), me.getKey()));
 			HashMap<Integer,Edge<T>> edgeMap = me.getValue();
 			if (edgeMap != null) {
 				Set<Map.Entry<Integer, Edge<T>>> edgeSet = edgeMap.entrySet();
@@ -276,9 +283,11 @@ public class Graph<T extends Comparable<T>> {
 	}
 
 	// Depth first search of general graphs
+	public enum DFSCallbackReturnTypes { Continue, AbandonSearch, AbandonThisNode } 
 	protected void DFSVisit(AlgoSpecificNode<T> dfsNode, AtomicInteger time, 
 						Map<Integer,AlgoSpecificNode<T>> nodeMap, 
-						Function<AlgoSpecificNode<T>, Boolean> nodeExplored, Function<AlgoSpecificNode<T>, Boolean> nodeComplete, 
+						Function<AlgoSpecificNode<T>, DFSCallbackReturnTypes> nodeExplored, 
+						Function<AlgoSpecificNode<T>, DFSCallbackReturnTypes> nodeComplete, 
 						Set<Node<T>> forestNodes) {
 		
 		// White Node has just been discovered
@@ -288,6 +297,10 @@ public class Graph<T extends Comparable<T>> {
 		dfsNode.color = Color.gray;
 		dfsNode.start = time.get();
 
+if (dfsNode.node.nodeName.toString().compareTo("5") == 0 ||
+dfsNode.node.nodeName.toString().compareTo("T") == 0) {
+	int kk = 0;
+}
 		// explore children recursively
 		Collection<Edge<T>> edges = getEdgesByVertexId(dfsNode.node.node);
 		for (Edge<T> edge : edges) {
@@ -295,27 +308,38 @@ public class Graph<T extends Comparable<T>> {
 			if (dfsnTarget.color == Color.white) {
 				
 				dfsnTarget.parent = dfsNode;
-				Boolean fContinue = nodeExplored == null ? true : nodeExplored.apply(dfsnTarget);
-				if (!fContinue)
+				DFSCallbackReturnTypes ret = nodeExplored == null ? DFSCallbackReturnTypes.Continue : nodeExplored.apply(dfsnTarget);
+				if (ret == DFSCallbackReturnTypes.AbandonSearch) {
+					dfsnTarget.parent = null;
 					return;
+				} else if (ret == DFSCallbackReturnTypes.AbandonThisNode) {
+					dfsnTarget.parent = null;
+					continue;
+				}
 				
 				forestNodes.add(dfsnTarget.node);
 				DFSVisit(dfsnTarget, time, nodeMap, nodeExplored, nodeComplete, forestNodes);
 			}
 		}
 		
+		// process the node
+		DFSCallbackReturnTypes ret = nodeComplete == null ? DFSCallbackReturnTypes.Continue : nodeComplete.apply(dfsNode);
+		if (ret == DFSCallbackReturnTypes.AbandonSearch)
+			return;
+		else if (ret == DFSCallbackReturnTypes.AbandonThisNode) {
+			// set complete
+			dfsNode.color = Color.black;
+			dfsNode.end = time.incrementAndGet();
+		}
+
 		// set complete
 		dfsNode.color = Color.black;
 		dfsNode.end = time.incrementAndGet();
-
-		// process the node
-		Boolean fContinue = nodeComplete == null ? true : nodeComplete.apply(dfsNode);
-		if (!fContinue)
-			return;
 	}
 
 	protected void DepthFirstSearch(Map<Integer,AlgoSpecificNode<T>> nodeMap, Set<Integer> vertexSet, 
-						Function<AlgoSpecificNode<T>, Boolean> exploreNode, Function<AlgoSpecificNode<T>, Boolean> processNode, 
+						Function<AlgoSpecificNode<T>, DFSCallbackReturnTypes> exploreNode, 
+						Function<AlgoSpecificNode<T>, DFSCallbackReturnTypes> processNode, 
 						boolean fPrint) {
 		AtomicInteger time = new AtomicInteger(0);
 
@@ -349,7 +373,7 @@ public class Graph<T extends Comparable<T>> {
 		}
 	}	
 	
-	public void DepthFirstSearch(Function<AlgoSpecificNode<T>, Boolean> exploreNode, Function<AlgoSpecificNode<T>, Boolean> processNode) {
+	public void DepthFirstSearch(Function<AlgoSpecificNode<T>, DFSCallbackReturnTypes> exploreNode, Function<AlgoSpecificNode<T>, DFSCallbackReturnTypes> processNode) {
 		System.out.printf("DFS on [%s]:", name);
 				
 		Map<Integer,AlgoSpecificNode<T>> nodeMap = InitializeVertexMap(1, 0.0, 0.0);
@@ -358,6 +382,41 @@ public class Graph<T extends Comparable<T>> {
 		System.out.println();
 	}
 
+	public List<List<T>> DisjointPaths(Set<T> forestVertexNames) {
+		Map<Integer,AlgoSpecificNode<T>> nodeMap = InitializeVertexMap(1, 0.0, 0.0);
+		List<List<T>> disjointPaths = new ArrayList<List<T>>();
+		Set<Integer> vertexSet = forestVertexNames.stream().map(x->getVertexId(x)).collect(Collectors.toSet());
+		DepthFirstSearch(nodeMap, vertexSet,
+						 (AlgoSpecificNode<T> node)-> {
+			
+							// Skip processing for non terminal nodes.
+							if (getEdgesByVertexId(node.node.node).size() == 0) {
+								
+								// Walk up the tree and see if we can get a full path to the start
+								boolean allVirgin = true;
+								for (AlgoSpecificNode<T> nodeInPath = node; allVirgin && nodeInPath != null; nodeInPath = nodeInPath.parent) {
+									allVirgin &= (nodeInPath.label == 0);
+								}
+								
+								// If the path is all virgin (aka no node has been seen on a different path) we have a disjoint path
+								if (allVirgin) {
+									List<T> dfsPath = new ArrayList<T>(); 
+									for (AlgoSpecificNode<T> nodeInPath = node; allVirgin && nodeInPath != null; nodeInPath = nodeInPath.parent) {
+										dfsPath.add(nodeInPath.node.nodeName);
+										nodeInPath.label = 1;
+									}
+									Collections.reverse(dfsPath);
+									disjointPaths.add(dfsPath);
+									return DFSCallbackReturnTypes.Continue;
+								} else {
+									return DFSCallbackReturnTypes.AbandonThisNode;
+								}
+							} else {
+								return DFSCallbackReturnTypes.Continue;
+							}
+						}, null, false);
+		return disjointPaths;
+	}
 	
 	public void StronglyConnectedComponents() {
 		Map<Integer,AlgoSpecificNode<T>> nodeMap = InitializeVertexMap(1, 0.0, 0.0);
@@ -409,7 +468,7 @@ public class Graph<T extends Comparable<T>> {
 	// Topological Sorting
 	public void TopologicalSort() {
 		SinglyLinkedList<T> sll = new SinglyLinkedList<T>();
-		DepthFirstSearch(null, (AlgoSpecificNode<T> node)-> { sll.insertHead(node.node.nodeName); return true;});
+		DepthFirstSearch(null, (AlgoSpecificNode<T> node)-> { sll.insertHead(node.node.nodeName); return DFSCallbackReturnTypes.Continue;});
 		System.out.printf("TopSort on [%s]:%s\n", name, sll);
 	}
 	
@@ -558,7 +617,7 @@ public class Graph<T extends Comparable<T>> {
 		graph1.BreadthFirstSearch((AlgoSpecificNode<String> n) -> { System.out.printf("%s[%d:%d] ", n.node.nodeName, n.start, n.end); });
 
 		Graph<String> graph2 = GraphFactory.getCLRDFSGraph1();
-		graph2.DepthFirstSearch(null, (AlgoSpecificNode<String> n) -> { return true; });
+		graph2.DepthFirstSearch(null, (AlgoSpecificNode<String> n) -> { return DFSCallbackReturnTypes.Continue; });
 		
 		Graph<String> graph3a = GraphFactory.getCLRSCCGraph();
 		Graph<String> graph3b = graph3a.transpose();

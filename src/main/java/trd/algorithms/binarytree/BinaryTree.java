@@ -12,7 +12,7 @@ import java.util.function.Function;
 import trd.algorithms.utilities.Tuples;
 
 public class BinaryTree<T extends Comparable<T>> {
-	public static class Node<T> {
+	public static class Node<T extends Comparable<T>> {
 		Node<T>	left;
 		Node<T> right;
 		T		value;
@@ -179,12 +179,12 @@ public class BinaryTree<T extends Comparable<T>> {
 	
 	// DFS traversal of tree
 	public enum Color { white, gray, black };
-	public static class DFSNode<T, C> {
+	public static class DFSNode<T extends Comparable<T>, C> {
 		Color			color;
 		DFSNode<T,C>	parent;
 		int				start;
 		int				end;
-		Node<T>			node;
+		Node<T> 		node;
 		C				aux;
 		
 		public DFSNode(Node<T> node, int start, DFSNode<T, C> parent) {
@@ -390,13 +390,6 @@ public class BinaryTree<T extends Comparable<T>> {
 	}
 	
 	// Print path with sum. Keep Auxiliary stack capturing the current path
-	public void pathWithSum(T sum, BiFunction<T, T, T> summer) {
-		Stack<Node<T>> path = new Stack<Node<T>>();
-		path.push(root);
-		pathWithSum(root, null, sum, summer, path);
-		path.pop();
-		System.out.println();
-	}
 	private void pathWithSum(Node<T> node, T sumOnPath, T sum, BiFunction<T, T, T> summer, Stack<Node<T>> path) {		
 		
 		// If you have a node that has no left and right, try check if the sum matches.
@@ -431,8 +424,44 @@ public class BinaryTree<T extends Comparable<T>> {
 			path.pop();
 		}
 	}
+	public void pathWithSum(T sum, BiFunction<T, T, T> summer) {
+		Stack<Node<T>> path = new Stack<Node<T>>();
+		path.push(root);
+		pathWithSum(root, null, sum, summer, path);
+		path.pop();
+		System.out.println();
+	}
+
+	// Mirror the binary tree
+	public void Mirror(Node<T> node) {
+		if (node == null || (node.left == null && node.right == null))
+			return;
+		Node<T> rightChild = node.right;
+		node.right = node.left; node.left = rightChild;
+		Mirror(node.left);
+		Mirror(node.right);
+	}
 	
-	// Recursive check for IsBST
+	// Check if one binary tree is a mirror of another
+	private boolean IsMirror(Node<T> nodeThis, Node<T> nodeThat) {
+		boolean fRetVal = (nodeThis == null) ^ (nodeThat == null);
+		if (fRetVal)
+			return false;
+		else if (nodeThis == null && nodeThat == null)
+			return true;
+		else {
+			return 	nodeThis.value.compareTo(nodeThat.value) == 0 &&
+					IsMirror(nodeThis.left,  nodeThat.right) &&
+					IsMirror(nodeThis.right, nodeThat.left);
+		}
+			
+	}
+	public boolean IsMirror(BinaryTree<T> that) {
+		return IsMirror(this.root, that.root);
+	}
+	
+	// Recursive check for IsBST.
+	// Trick is that you will have to pass the parent node
 	public boolean isBST() {
 		return root == null ? true : isBST(root, null);
 	}
@@ -492,5 +521,17 @@ public class BinaryTree<T extends Comparable<T>> {
 		int sum = 28;
 		System.out.printf("Path With Sum [%d]:", sum); 
 		tree3a.pathWithSum(sum, (s1,s2)-> (s1 == null ? 0 : s1) + (s2 == null ? 0 : s2));
+
+		if (true) {
+			BinaryTree<Integer> tree4a, tree4b;
+			tree4a = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });
+			System.out.printf("Tree: %s", tree4a);
+			tree4a.Mirror(tree4a.root);
+			String thatTree = tree4a.toString();
+			System.out.printf("Mirrored: %s ", tree4a);
+			tree4a = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });			
+			tree4b = new BinaryTree<Integer>(thatTree, (String s)-> { return Integer.parseInt(s); });
+			System.out.printf("Are %s mirrors ", tree4a.IsMirror(tree4b) ? "true" :"false");
+		}
 	}
 }

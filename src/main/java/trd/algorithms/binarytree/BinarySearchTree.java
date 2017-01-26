@@ -7,7 +7,7 @@ import trd.algorithms.utilities.Tuples;
 public class BinarySearchTree<T extends Comparable<T>> extends BinaryTree<T> {
 
 	public static enum Orientation {Left, Right, Root};
-	public static class SearchPathNode<T> {
+	public static class SearchPathNode<T extends Comparable<T>> {
 		Node<T>	 	 node;
 		Orientation	 orientation;
 		public SearchPathNode(Node<T> node, Orientation orientation) {

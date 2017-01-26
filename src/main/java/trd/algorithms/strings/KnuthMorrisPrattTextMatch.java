@@ -1,5 +1,7 @@
 package trd.algorithms.strings;
 
+import trd.algorithms.Arrays.ArrayProblems;
+
 // DFA matching matches a pattern in O(n) time.
 // What is the difference between DFA and KMP?
 //		DFA requires O((PatternLength + 1) * alphabet) storage
@@ -34,6 +36,8 @@ public class KnuthMorrisPrattTextMatch {
 		int k = 0;
 		Prefix[0] = 0;
 		
+		System.out.printf("%s\n", Pattern);
+		
 		// Clearly, we cannot have a prefix [1..k] when q is 0
 		// The beauty is that we can do this in O(m) time
 		// Strategy:
@@ -61,6 +65,7 @@ public class KnuthMorrisPrattTextMatch {
 					q++;
 				}
 			}
+			System.out.printf("%2d:%s\n", q, ArrayProblems.ArrayToString("", Prefix));
 		}
 	}
 	
@@ -101,7 +106,7 @@ public class KnuthMorrisPrattTextMatch {
 	}
 
 	public static void main(String[] args) {
-		KnuthMorrisPrattTextMatch kmp = new KnuthMorrisPrattTextMatch("ababaca");
+		KnuthMorrisPrattTextMatch kmp = new KnuthMorrisPrattTextMatch("ababac");
 		kmp.CompilePattern();
 		String[] texts = new String[] { "zzababzababacaz" };
 		for (String text : texts) {

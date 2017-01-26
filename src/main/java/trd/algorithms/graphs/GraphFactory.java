@@ -111,4 +111,41 @@ public class GraphFactory {
 		graph1.addEdge("v", "t", 100.0);
 		return graph1;
 	}
+	
+	public static BipartiteMatching<String> getBiPartiteGraph1() {
+		BipartiteMatching<String> graph1 = new BipartiteMatching<String>("BiPartiteGraph1");
+		graph1.addEdge("1", "7");
+		graph1.addEdge("1", "6");
+		graph1.addEdge("2", "8");
+		graph1.addEdge("2", "6");
+		graph1.addEdge("2", "5");
+		graph1.addEdge("3", "8");
+		graph1.addEdge("3", "6");
+		graph1.addEdge("3", "5");
+		graph1.addEdge("4", "5");
+		return graph1;
+	}
+
+	public static BipartiteMatching<String> getBiPartiteGraph2() {
+		BipartiteMatching<String> graph1 = new BipartiteMatching<String>("BiPartiteGraph2");
+		graph1.addEdge("B", "1");
+		graph1.addEdge("B", "4");
+		graph1.addEdge("E", "7");
+		graph1.addEdge("E", "3");
+		graph1.addEdge("E", "6");
+		graph1.addEdge("J", "2");
+		graph1.addEdge("J", "5");
+		graph1.addEdge("J", "4");
+		graph1.addEdge("L", "7");
+		graph1.addEdge("L", "2");
+		graph1.addEdge("T", "7");
+		graph1.addEdge("T", "6");
+		graph1.addEdge("T", "5");
+		graph1.addEdge("A", "3");
+		graph1.addEdge("A", "6");
+		graph1.addEdge("R", "6");
+		graph1.addEdge("R", "7");
+		return graph1;
+	}
+	
 }
