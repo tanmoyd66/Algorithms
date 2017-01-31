@@ -26,4 +26,8 @@ public class Utilities {
 		return ret;
 	}
 
+	public static void Verbose(boolean fPrint, String format, Object...args) {
+		if (fPrint)
+			System.out.printf(format, args);
+	}
 }

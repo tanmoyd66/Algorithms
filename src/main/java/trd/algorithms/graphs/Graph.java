@@ -18,7 +18,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import trd.algorithms.datastructures.DynamicSet;
+import trd.algorithms.graphs.Graph.Edge;
 import trd.algorithms.linkedlists.SinglyLinkedList;
+import trd.algorithms.utilities.Utilities;
 
 public class Graph<T extends Comparable<T>> {
 	public enum Mode 		{ Directed, Undirected };
@@ -56,9 +58,15 @@ public class Graph<T extends Comparable<T>> {
 		T			nodeName;
 		Graph<T>	graph;
 		Double		weight;
+		Object		garnish;
 		
 		public Node(Graph<T> graph, Integer node) {
 			this.graph = graph; this.node = node; 
+			this.nodeName = graph.getVertexById(node); 
+		}
+		public Node(Graph<T> graph, Integer node, Object garnish) {
+			this.graph = graph; this.node = node; 
+			this.garnish = garnish;
 			this.nodeName = graph.getVertexById(node); 
 		}
 		public String toString() {
@@ -92,7 +100,7 @@ public class Graph<T extends Comparable<T>> {
 		}
 	}
 
-	String										name		= "";
+	public String								name		= "";
 	Mode										mode		= Mode.Directed;
 	Integer										startNode	= 1;
 	Integer										maxVertex 	= 0;
@@ -100,6 +108,7 @@ public class Graph<T extends Comparable<T>> {
 	HashMap<Integer,T> 							invVertMap 	= new HashMap<Integer,T>();
 	HashMap<Integer,HashMap<Integer,Edge<T>>>	adjList		= new HashMap<Integer,HashMap<Integer,Edge<T>>>();
 	List<Edge<T>>								edgeList	= new ArrayList<Edge<T>>();
+	HashMap<Integer, Object>					vertGarnish	= new HashMap<Integer, Object>();
 	
 	public String printEdge(Edge<T> e) {
 		String ret = String.format("(%s,%s)", invVertMap.get(e.source), invVertMap.get(e.target));
@@ -211,7 +220,27 @@ public class Graph<T extends Comparable<T>> {
 	public void addEdge(T source, T target, Double weight, EdgeType type) {
 		_addEdge(source, target, weight, type);
 	}
+
+	// Add AlgoSpecific attributes to node
+	public void addNodeGarnish(T vertex, Object garnish) {
+		Integer  vertexId = getVertexId(vertex);
+		if (vertexId != null) {
+			vertGarnish.put(vertexId, garnish);
+		}
+	}
 	
+	// Convert the path into a list of edges
+	public List<Edge<T>> VertexPathToEdgePath(List<T> vPath) { 
+		List<Edge<T>> ePath = new ArrayList<Edge<T>>();
+		T prev = vPath.get(0);
+		for (int i = 1; i < vPath.size(); i++) {
+			Edge<T> thisEdge = getEdgeByStartEnd(prev, vPath.get(i));
+			ePath.add(thisEdge);
+			prev = vPath.get(i);
+		}
+		return ePath;
+	}
+
 	// Construction
 	public Graph(String name) {
 		this.name = name;
@@ -247,8 +276,26 @@ public class Graph<T extends Comparable<T>> {
 		return transpose;
 	}
 	
-	// print 
+	// Pretty printing routines	
+	boolean fPrintGraphEdgesOnly = false;
+	boolean fPrintBareBonesOnly  = false;
+
+	public void SetGraphEdgesPrintingConfig(boolean fPrintGraphEdgesOnly) {
+		this.fPrintGraphEdgesOnly = fPrintGraphEdgesOnly;
+	}
+	public void SetGraphPrintingConfig(boolean fPrintBareBonesOnly) {
+		this.fPrintBareBonesOnly = fPrintBareBonesOnly;
+	}
+	
+	public String EdgeType(Edge<T> e) {
+		return e.type == Graph.EdgeType.Augmented ? "A" : "G";
+	}
 	public String toString() {
+		return fPrintBareBonesOnly ? toStringBareBones() : toStringFull();
+	}
+	
+	// print 
+	public String toStringBareBones() {
 		StringBuilder sb = new StringBuilder();
 		Set<Map.Entry<Integer,HashMap<Integer,Edge<T>>>> meSet = adjList.entrySet();
 		sb.append("\n------------------------------");
@@ -267,13 +314,61 @@ public class Graph<T extends Comparable<T>> {
 		sb.append("\n------------------------------");
 		return sb.toString();
 	}
-	
+
+	// print 
+	public String toStringFull() {
+		StringBuilder sb = new StringBuilder();
+		Set<Map.Entry<Integer,HashMap<Integer,Edge<T>>>> meSet = adjList.entrySet();
+		sb.append("\n------------------------------");
+		sb.append("\n"); sb.append(name);
+		sb.append("\n------------------------------");
+		for (Map.Entry<Integer,HashMap<Integer,Edge<T>>> me : meSet) {
+			sb.append(String.format("\n[%2s(%2d)]: ", invVertMap.get(me.getKey()), me.getKey()));
+			HashMap<Integer,Edge<T>> edgeMap = me.getValue();
+			if (edgeMap != null) {
+				Set<Map.Entry<Integer, Edge<T>>> edgeSet = edgeMap.entrySet();
+				for (Map.Entry<Integer, Edge<T>> meEdge : edgeSet) {
+					if (!fPrintGraphEdgesOnly || (fPrintGraphEdgesOnly && meEdge.getValue().type == EdgeType.Graph)) {
+						sb.append(String.format("[%2s:%3.0f/%3.2f-%s:%d] ", 
+								invVertMap.get(meEdge.getKey()), meEdge.getValue().flow, meEdge.getValue().weight, EdgeType(meEdge.getValue()), meEdge.getValue().label));
+
+					}
+				}
+			}
+		}
+		sb.append("\n------------------------------");
+		return sb.toString();
+	}
+
+	// Gets the adjacency matrix representation
+	public Double[][] GetAdjacencyMatrix() {
+		int 		size = getVertexSet().size();
+		Double[][]  adjM = new Double[size][size];
+		
+		for (int i = 0; i < size; i++) {
+			HashMap<Integer,Edge<T>> adj = this.adjList.get(i + 1);
+			if (adj == null) {
+				for (int j = 0; j < size; j++)
+					adjM[i][j] = 0.0;
+				continue;
+			}
+			for (int j = 0; j < size; j++) {
+				Edge<T> edge = adj.get(j + 1);
+				adjM[i][j] = edge == null ? 0.0 : edge.weight;
+			}
+		}
+		return adjM;
+	}
+
 	// General purpose initialization of vertex set
 	protected HashMap<Integer, AlgoSpecificNode<T>> InitializeVertexMap(Integer startId, Double defaultWeight, Double startVertexWeight) {
 		HashMap<Integer, AlgoSpecificNode<T>> nodeMap = new HashMap<Integer, AlgoSpecificNode<T>>();
 		Set<Integer> vertexSet = getVertexSet();
 		for (Integer v : vertexSet) {
 			Node<T> vNode = new Node<>(this, v); 
+			Object 	nodeGarnish = this.vertGarnish.get(v);
+			if (nodeGarnish != null)
+				vNode.garnish = nodeGarnish;
 			vNode.weight = defaultWeight;
 			nodeMap.put(v, new AlgoSpecificNode<T>(vNode, null, 0));
 		}
@@ -297,10 +392,6 @@ public class Graph<T extends Comparable<T>> {
 		dfsNode.color = Color.gray;
 		dfsNode.start = time.get();
 
-if (dfsNode.node.nodeName.toString().compareTo("5") == 0 ||
-dfsNode.node.nodeName.toString().compareTo("T") == 0) {
-	int kk = 0;
-}
 		// explore children recursively
 		Collection<Edge<T>> edges = getEdgesByVertexId(dfsNode.node.node);
 		for (Edge<T> edge : edges) {
@@ -346,7 +437,7 @@ dfsNode.node.nodeName.toString().compareTo("T") == 0) {
 		// Perform Depth First Search
 		int treeId = 0;
 		
-		// For each vertex, we will go thru the adjecancy list 
+		// For each vertex, we will go thru the adjacency list 
 		for (Integer vertex : vertexSet) {
 			
 			AlgoSpecificNode<T> node = nodeMap.get(vertex);
@@ -418,11 +509,11 @@ dfsNode.node.nodeName.toString().compareTo("T") == 0) {
 		return disjointPaths;
 	}
 	
-	public void StronglyConnectedComponents() {
+	public List<List<Node<T>>> StronglyConnectedComponents(boolean fPrint) {
 		Map<Integer,AlgoSpecificNode<T>> nodeMap = InitializeVertexMap(1, 0.0, 0.0);
 		AtomicInteger time = new AtomicInteger(0);
 		
-		System.out.printf("SCC on [%s]:", name);
+		Utilities.Verbose(fPrint, "SCC on [%s]:", name);
 
 		// Perform Depth First Search on every vertex
 		Set<Integer> vertexSet = getVertexSet();
@@ -447,29 +538,35 @@ dfsNode.node.nodeName.toString().compareTo("T") == 0) {
 		nodeMap = InitializeVertexMap(1, 0.0, 0.0);
 		
 		// Perform DFS on the transposed graph in order of the nodes in the nodeList
+		List<List<Node<T>>> ret = new ArrayList<List<Node<T>>>();
 		for (AlgoSpecificNode<T> nodeOther : nodeList) {
-			AlgoSpecificNode<T> node = nodeMap.get(nodeOther.node);
+			AlgoSpecificNode<T> node = nodeMap.get(nodeOther.node.node);
 			if (node == null || node.color == Color.white) {
 				AlgoSpecificNode<T> root = node == null ? new AlgoSpecificNode<T>(new Node<T>(this, nodeOther.node.node), null, time.get()) : node;
 				Set<Node<T>> forestNodes = new HashSet<Node<T>>();
 				forestNodes.add(root.node);
 				transposed.DFSVisit(root, time, nodeMap, null, null, forestNodes);
-				System.out.printf("(%d):{ ", ++treeId);
+				
+				List<Node<T>> thisSCC = new ArrayList<Node<T>>();
+				Utilities.Verbose(fPrint, "(%d):{ ", ++treeId);
 				for (Node<T> thisNode: forestNodes) {
 					AlgoSpecificNode<T> aNode = nodeMap.get(thisNode.node);
-					System.out.printf("%s[%d:%d] ", thisNode.nodeName, aNode.start, aNode.end);
+					thisSCC.add(thisNode);
+					Utilities.Verbose(fPrint, "%s[%d:%d] ", thisNode.nodeName, aNode.start, aNode.end);
 				}
-				System.out.printf("} ", treeId);
+				Utilities.Verbose(fPrint, "} ", treeId);
+				ret.add(thisSCC);
 			}
 		}
-		System.out.println();
+		Utilities.Verbose(fPrint, "\n");
+		return ret;
 	}	
 
 	// Topological Sorting
-	public void TopologicalSort() {
+	public void TopologicalSort(boolean fPrint) {
 		SinglyLinkedList<T> sll = new SinglyLinkedList<T>();
 		DepthFirstSearch(null, (AlgoSpecificNode<T> node)-> { sll.insertHead(node.node.nodeName); return DFSCallbackReturnTypes.Continue;});
-		System.out.printf("TopSort on [%s]:%s\n", name, sll);
+		Utilities.Verbose(fPrint, "TopSort on [%s]:%s\n", name, sll);
 	}
 	
 	// Breadth first search of general graphs
@@ -509,7 +606,7 @@ dfsNode.node.nodeName.toString().compareTo("T") == 0) {
 
 	
 	// Minimal Spanning Tree using Kruskal's Algorithm
-	public void MinimalSpanningTree_Kruskal() {
+	public void MinimalSpanningTree_Kruskal(boolean fPrint) {
 		System.out.printf("MST-Kruskal on [%s]:", name);
 		
 		// Get the list of edges and sort them in increasing weight
@@ -543,35 +640,31 @@ dfsNode.node.nodeName.toString().compareTo("T") == 0) {
 			}
 		}
 		
-		System.out.printf("[ ");
+		Utilities.Verbose(fPrint, "[ ");
 		for (Edge<T> e: treeEdges) {
-			System.out.printf("(%s,%s) ", getVertexById(e.source), getVertexById(e.target));
+			Utilities.Verbose(fPrint, "(%s,%s) ", getVertexById(e.source), getVertexById(e.target));
 		}
-		System.out.printf("]\n");
+		Utilities.Verbose(fPrint, "]\n");
 	}
 
 	// Minimal Spanning Tree using Prim's Algorithm
-	public void MinimalSpanningTree_Prim() {
-		System.out.printf("MST-Prim on [%s]:", name);
+	public List<Edge<T>> MinimalSpanningTree_Prim(boolean fPrint, T start) {
+		Utilities.Verbose(fPrint, "MST-Prim on [%s]:", name);
 		
-		Set<Edge<T>> treeEdges = new HashSet<Edge<T>>();
-
-		HashMap<Integer, AlgoSpecificNode<T>> 	nodeMap = new HashMap<Integer, AlgoSpecificNode<T>>();
+		Integer									startId	= start == null ? this.startNode : getVertexId(start);
+		HashMap<Integer, AlgoSpecificNode<T>> 	nodeMap = this.InitializeVertexMap(startId, Double.MAX_VALUE, 0.0);
 		PriorityQueue<AlgoSpecificNode<T>>		pqHeap  = new PriorityQueue<AlgoSpecificNode<T>>((AlgoSpecificNode<T> a, AlgoSpecificNode<T> b)-> a.node.weight > b.node.weight ? 1 : a.node.weight == b.node.weight? 0 : -1);
 		
 		// Get a list of all vertices and create a min-priority queue with all vertices with weights set to a large number
 		Set<Integer> vertexSet = getVertexSet();
 		for (Integer v : vertexSet) {
-			AlgoSpecificNode<T> vNode = new AlgoSpecificNode<>(new Node<>(this, v), null, 0); 
-			vNode.node.weight = v == startNode ? 0 : Double.MAX_VALUE;
-			nodeMap.put(v, vNode);
-			pqHeap.add(vNode);
+			pqHeap.add(nodeMap.get(v));
 		}
 		
 		// Loop over the queue, 
 		while (!pqHeap.isEmpty()) {
 			
-			// extracting the vertex with the minimal vertex
+			// extracting the vertex with the minimal weight
 			AlgoSpecificNode<T> curr = pqHeap.poll();
 			
 			// loop over the adj-list of curr
@@ -596,43 +689,96 @@ dfsNode.node.nodeName.toString().compareTo("T") == 0) {
 		}
 		
 		// Print the edges. The tree edges correspond to those vertices that have a non-null parent
-		System.out.printf("[ ");
+		List<Edge<T>> edges = new ArrayList<Edge<T>>();
 		for (HashMap.Entry<Integer, AlgoSpecificNode<T>> me : nodeMap.entrySet()) {
 			AlgoSpecificNode<T> currVertex = me.getValue();
 			if (currVertex.parent != null) {
-				System.out.printf("(%s,%s) ", getVertexById(currVertex.parent.node.node), getVertexById(currVertex.node.node));
+				edges.add(this.getEdgeByStartEnd(currVertex.parent.node.node, currVertex.node.node));
+				Utilities.Verbose(fPrint, "(%s,%s) ", getVertexById(currVertex.parent.node.node), getVertexById(currVertex.node.node));
 			}
 		}
-		System.out.printf("]\n");
+		Utilities.Verbose(fPrint, "]\n");
+		return edges;
 	}
 
+	private Integer getNonIsolatedVertex() {
+		for (Integer vertex : getVertexSet()) {
+			if (getEdgesByVertexId(vertex).size() > 0)
+				return vertex;
+		}
+		return null;
+	}
+	
+	public List<Node<T>> EulerPath(T start) {
+
+		List<Node<T>> cycle = new ArrayList<Node<T>>();
+
+		// Check if the graph has one strongly connected component
+		List<List<Node<T>>> sccList = StronglyConnectedComponents(false);		
+		if (sccList.size() == 1) {
+			Graph<T> transposedGraph = this.transpose();
+			
+			// Make sure that all vertices have the same in and out degree
+			for (Integer vertexId : getVertexSet()) {
+				int outDegree = this.getEdgesByVertexId(vertexId).size();
+				T vertexName = getVertexById(vertexId);
+				int inDegree = transposedGraph.getEdgesByVertexId(transposedGraph.getVertexId(vertexName)).size();
+				if (inDegree != outDegree)
+					return cycle;
+			}
+			
+			Integer startVertex = start == null ? getNonIsolatedVertex() : getVertexId(start);
+			if (startVertex == null) 
+				return cycle;
+
+			Set<Integer> vertexSet = new HashSet<Integer>(); vertexSet.add(startVertex);
+			HashMap<Integer, AlgoSpecificNode<T>> 	nodeMap = this.InitializeVertexMap(getVertexId(start), 0.0, 0.0);
+			DepthFirstSearch(nodeMap, vertexSet, 
+							 null,
+							 (AlgoSpecificNode<T> n) -> { cycle.add(n.node); return DFSCallbackReturnTypes.Continue; }, 
+							 false);
+		}
+		return cycle;
+	}
 	
 	///////////////////////////////////////////////////////////////////////////////
 	
 	public static void main(String[] args) {
-		Graph<String> graph1 = GraphFactory.getNetworkFlowGraph1();
-		System.out.println(graph1);
 		
-		graph1.DepthFirstSearch(null, null);	
-		graph1.BreadthFirstSearch((AlgoSpecificNode<String> n) -> { System.out.printf("%s[%d:%d] ", n.node.nodeName, n.start, n.end); });
+		if (true) {
+			Graph<String> graph1 = GraphFactory.getNetworkFlowGraph1();
+			System.out.println(graph1);
+			
+			graph1.DepthFirstSearch(null, null);	
+			graph1.BreadthFirstSearch((AlgoSpecificNode<String> n) -> { System.out.printf("%s[%d:%d] ", n.node.nodeName, n.start, n.end); });
+	
+			Graph<String> graph2 = GraphFactory.getCLRDFSGraph1();
+			graph2.DepthFirstSearch(null, (AlgoSpecificNode<String> n) -> { return DFSCallbackReturnTypes.Continue; });
+		}
+		
+		if (true) {
+			Graph<String> graph3a = GraphFactory.getCLRSCCGraph();
+			Graph<String> graph3b = graph3a.transpose();
+			System.out.println(graph3a);
+			System.out.println(graph3b);
+			graph3a.DepthFirstSearch(null, null);
+			graph3b.DepthFirstSearch(null, null);
+			graph3a.StronglyConnectedComponents(true);
+			graph3a.TopologicalSort(true);
+		}
+		
+		if (true) {
+			Graph<String> graph4 = GraphFactory.getCLRMSTUGraph();
+			System.out.println(graph4);
+			graph4.DepthFirstSearch(null, null);
+			graph4.MinimalSpanningTree_Kruskal(true);
+			graph4.MinimalSpanningTree_Prim(true, null);
+		}
 
-		Graph<String> graph2 = GraphFactory.getCLRDFSGraph1();
-		graph2.DepthFirstSearch(null, (AlgoSpecificNode<String> n) -> { return DFSCallbackReturnTypes.Continue; });
-		
-		Graph<String> graph3a = GraphFactory.getCLRSCCGraph();
-		Graph<String> graph3b = graph3a.transpose();
-		System.out.println(graph3a);
-		System.out.println(graph3b);
-		graph3a.DepthFirstSearch(null, null);
-		graph3b.DepthFirstSearch(null, null);
-		graph3a.StronglyConnectedComponents();
-		graph3a.TopologicalSort();
-		
-		Graph<String> graph4 = GraphFactory.getCLRMSTUGraph();
-		System.out.println(graph4);
-		graph4.DepthFirstSearch(null, null);
-		graph4.MinimalSpanningTree_Kruskal();
-		graph4.MinimalSpanningTree_Prim();
-
+		if (true) {
+			Graph<String> graph4 = GraphFactory.getEulerCircuitTestGraph();
+			System.out.println(graph4);
+			graph4.EulerPath(null);
+		}
 	}
 }

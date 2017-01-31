@@ -1,7 +1,5 @@
 package trd.algorithms.strings;
 
-import trd.algorithms.Arrays.ArrayProblems;
-
 // DFA matching matches a pattern in O(n) time.
 // What is the difference between DFA and KMP?
 //		DFA requires O((PatternLength + 1) * alphabet) storage
@@ -24,10 +22,28 @@ public class KnuthMorrisPrattTextMatch {
 	String 		Pattern;
 	Integer[] 	Prefix;
 
+	public static <S> String StringToString(String A) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("   ["));
+		for (int i = 0; i < A.length(); i++)
+			sb.append(String.format("%s ", A.charAt(i)));
+		sb.append(String.format("]"));
+		return sb.toString();
+	}
+
+	public static <S> String ArrayToString(String tag, S[] A) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("%s:[", tag));
+		for (int i = 0; i < A.length; i++)
+			sb.append(String.format("%s ", A[i] == null ? " " : A[i]));
+		sb.append(String.format("]", tag));
+		return sb.toString();
+	}
+
 	public KnuthMorrisPrattTextMatch(String Pattern) {
 		this.PatternArray = Pattern.toCharArray();
 		this.Pattern = Pattern;
-		Prefix = new Integer[Pattern.length()];
+		Prefix = new Integer[Pattern.length()];		
 	}
 
 	public void CompilePattern() {
@@ -36,7 +52,7 @@ public class KnuthMorrisPrattTextMatch {
 		int k = 0;
 		Prefix[0] = 0;
 		
-		System.out.printf("%s\n", Pattern);
+		System.out.printf("%s\n", StringToString(Pattern));
 		
 		// Clearly, we cannot have a prefix [1..k] when q is 0
 		// The beauty is that we can do this in O(m) time
@@ -44,13 +60,16 @@ public class KnuthMorrisPrattTextMatch {
 		//    The loop variable is called q to mimic the state machine of DFA Search
 		// 	  We will match the pattern against itself in linear time
 		// 	  Setting the Prefix array is the only difference between Compilation and Matching
+		System.out.printf("%s  %s\n", ArrayToString(String.format("%2s", Pattern.charAt(0)), Prefix), "Initialize");
 		for (int q = 1; q < Pattern.length();) {
-			
+
 			if (PatternArray[q] == PatternArray[k]) {
 				// if the values of P[q] and P[k] match, that means
 				// P[1...k-1]=P[q-k+1...q-1] => P[1...k]=P[q-k+1...q]
 				// Forward both pointers
 				Prefix[q] = k + 1;
+				System.out.printf("%s  %s\n", ArrayToString(String.format("%2s", Pattern.charAt(q)), Prefix), 
+								  String.format("Match for %s(%d) with %s(%d)", Pattern.charAt(q), q, Pattern.charAt(k), k));
 				k++; q++;
 			} else {
 				// No match.
@@ -58,14 +77,17 @@ public class KnuthMorrisPrattTextMatch {
 				// We have to reset the k pointer so that we reset the prefix.
 				// Go back to where the Prefix of the previous location is.
 				if (k != 0) {
+					System.out.printf("%s  %s\n", ArrayToString(String.format("%2s", Pattern.charAt(q)), Prefix), 
+							String.format("Jump back from %s(%d) to %s(%d)", Pattern.charAt(k), k, Pattern.charAt(Prefix[k - 1]), Prefix[k - 1]));
 					k = Prefix[k - 1];
 				} else {
 					// We cannot go any farther back than 0.
 					Prefix[q] = 0;
+					System.out.printf("%s  %s\n", ArrayToString(String.format("%2s", Pattern.charAt(q)), Prefix), 
+							String.format("No more jumps possible from %s(%d)", Pattern.charAt(q), Prefix[q]));
 					q++;
 				}
 			}
-			System.out.printf("%2d:%s\n", q, ArrayProblems.ArrayToString("", Prefix));
 		}
 	}
 	

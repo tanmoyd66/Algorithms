@@ -1,6 +1,6 @@
 package trd.algorithms.branchandbound;
 
-import trd.algorithms.Arrays.ArrayProblems;
+import trd.algorithms.utilities.ArrayPrint;
 
 public class EightQueens {
 	
@@ -53,6 +53,6 @@ public class EightQueens {
 	public static void main(String[] args) {
 		EightQueens eq = new EightQueens(8);
 		eq.PlaceQueens(0);
-		System.out.printf("%s\n", ArrayProblems.ArrayToString("", eq.Positions));
+		System.out.printf("%s\n", ArrayPrint.ArrayToString("", eq.Positions));
 	}
 }

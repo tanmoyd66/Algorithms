@@ -1,7 +1,7 @@
 package trd.algorithms.sorting;
-import trd.algorithms.Arrays.ArrayProblems;
-import trd.algorithms.Arrays.ArrayProblems.ISwapper;
-import trd.algorithms.Arrays.ArrayProblems.Swapper;
+import trd.algorithms.utilities.ArrayPrint;
+import trd.algorithms.utilities.Swapper;
+import trd.algorithms.utilities.Swapper.ISwapper;
 import trd.algorithms.utilities.Tuples;
 
 public class Sorting {
@@ -10,8 +10,8 @@ public class Sorting {
 	// Strategy:
 	//		Go thru all the elements in 2 nested loops
 	public static <T extends Comparable<T>> void SelectionSort(T[] A) {
-		System.out.printf("Array %s:  -> ", ArrayProblems.ArrayToString("", A));
-		Swapper<T> swapper = new Swapper<T>();
+		System.out.printf("Array %s:  -> ", ArrayPrint.ArrayToString("", A));
+		Swapper.SwapperImpl<T> swapper = new Swapper.SwapperImpl<T>();
 
 		for (int i = 0; i < A.length - 1; i++) {
 			for (int j = i + 1; j < A.length; j++) {
@@ -20,7 +20,7 @@ public class Sorting {
 				}
 			}
 		}
-		System.out.printf("Sorted by Selection Sort %s in %d swaps, %d compares \n", ArrayProblems.ArrayToString("", A), swapper.SwapCount, swapper.CompareCount);
+		System.out.printf("Sorted by Selection Sort %s in %d swaps, %d compares \n", ArrayPrint.ArrayToString("", A), swapper.SwapCount, swapper.CompareCount);
 	}
 
 	// Simple Bubble Sort
@@ -28,8 +28,8 @@ public class Sorting {
 	//		Make n passes - in each pass position the maximal element in the right-most position
 	//		In i th pass, you need to go up only to n - i th element as everything to the right is in place 
 	public static <T extends Comparable<T>> void BubbleSort(T[] A) {
-		System.out.printf("Array %s:  -> ", ArrayProblems.ArrayToString("", A));
-		Swapper<T> swapper = new Swapper<T>();
+		System.out.printf("Array %s:  -> ", ArrayPrint.ArrayToString("", A));
+		Swapper.SwapperImpl<T> swapper = new Swapper.SwapperImpl<T>();
 
 		for (int pass = 0; pass < A.length - 1; pass++) {
 			for (int i = 1; i < A.length - pass; i++) {
@@ -38,7 +38,7 @@ public class Sorting {
 				}
 			}
 		}
-		System.out.printf("Sorted by Bubble Sort    %s in %d swaps, %d compares \n", ArrayProblems.ArrayToString("", A), swapper.SwapCount, swapper.CompareCount);
+		System.out.printf("Sorted by Bubble Sort    %s in %d swaps, %d compares \n", ArrayPrint.ArrayToString("", A), swapper.SwapCount, swapper.CompareCount);
 	}
 
 
@@ -72,7 +72,7 @@ public class Sorting {
 		return fIsHeap;
 	}
 	
-	private static <T extends Comparable<T>> void Heapify(T[] A, HeapType ht, int idx, int end, Swapper<T> swapper) {
+	private static <T extends Comparable<T>> void Heapify(T[] A, HeapType ht, int idx, int end, Swapper.SwapperImpl<T> swapper) {
 		int 	root    = idx - 1; 
 		int 	left    = (2 * idx) - 1;
 		int 	right   = (2 * idx + 1) - 1;
@@ -103,26 +103,26 @@ public class Sorting {
 	}
 	public static <T extends Comparable<T>> void Heapify(T[] A, HeapType ht) {
 		
-		Swapper<T> swapper = new Swapper<T>();
-		System.out.printf("Array %s: %s a Heap -> ", ArrayProblems.ArrayToString("", A), IsHeap(A, ht, swapper) ? "is" : "is not");
+		Swapper.SwapperImpl<T> swapper = new Swapper.SwapperImpl<T>();
+		System.out.printf("Array %s: %s a Heap -> ", ArrayPrint.ArrayToString("", A), IsHeap(A, ht, swapper) ? "is" : "is not");
 		
 		for (int i = A.length/2; i >= 1; i--) {
 			Heapify(A, ht, i, A.length, swapper);
 		}
-		System.out.printf("%s-Heapified %s: in %d swaps, %d compares\n", ht == HeapType.Max ? "Max" : "Min", ArrayProblems.ArrayToString("", A), swapper.SwapCount, swapper.CompareCount);
+		System.out.printf("%s-Heapified %s: in %d swaps, %d compares\n", ht == HeapType.Max ? "Max" : "Min", ArrayPrint.ArrayToString("", A), swapper.SwapCount, swapper.CompareCount);
 	}
 
 	// Heapsort (same as kth largest - go all the way)
 	public static <T extends Comparable<T>> void HeapSort(T[] A) {
-		System.out.printf("Array %s:  -> ", ArrayProblems.ArrayToString("", A));
-		Swapper<T> swapper = new Swapper<T>();
+		System.out.printf("Array %s:  -> ", ArrayPrint.ArrayToString("", A));
+		Swapper.SwapperImpl<T> swapper = new Swapper.SwapperImpl<T>();
 		for (int i = 0; i < A.length; i++) {
 			for (int j = (A.length - i)/2; j >= 1; j--) {
 				Heapify(A, HeapType.Max, j, A.length - i, swapper);
 			}
 			swapper.swap(A, 0, A.length - i - 1);
 		}
-		System.out.printf("Sorted by HeapSort       %s in %d swaps, %d compares\n", ArrayProblems.ArrayToString("", A), swapper.SwapCount, swapper.CompareCount);
+		System.out.printf("Sorted by HeapSort       %s in %d swaps, %d compares\n", ArrayPrint.ArrayToString("", A), swapper.SwapCount, swapper.CompareCount);
 	}
 
 	// Single Pivot Partitioning
@@ -155,10 +155,10 @@ public class Sorting {
 		QuicksortBySinglePivotPartitioning(A, mid + 1, end, swapper);
 	}
 	public static <T extends Comparable<T>>  void QuicksortBySinglePivotPartitioning(T[] A) {
-		System.out.printf("Array %s:  -> ", ArrayProblems.ArrayToString("", A));
-		Swapper<T> swapper = new Swapper<T>();
+		System.out.printf("Array %s:  -> ", ArrayPrint.ArrayToString("", A));
+		Swapper.SwapperImpl<T> swapper = new Swapper.SwapperImpl<T>();
 		QuicksortBySinglePivotPartitioning(A, 0, A.length - 1, swapper);
-		System.out.printf("Sorted by Quicksort(SPP) %s in %d swaps, %d compares \n", ArrayProblems.ArrayToString("", A), swapper.SwapCount, swapper.CompareCount);
+		System.out.printf("Sorted by Quicksort(SPP) %s in %d swaps, %d compares \n", ArrayPrint.ArrayToString("", A), swapper.SwapCount, swapper.CompareCount);
 	}
 	
 	// Double Pivot Partitioning
@@ -217,10 +217,10 @@ public class Sorting {
 		QuicksortByDualPivotPartitioning(A, mid.elem2 + 1, end, swapper);
 	}
 	public static <T extends Comparable<T>>  void QuicksortByDualPivotPartitioning(T[] A) {
-		System.out.printf("Array %s:  -> ", ArrayProblems.ArrayToString("", A));
-		Swapper<T> swapper = new Swapper<T>();
+		System.out.printf("Array %s:  -> ", ArrayPrint.ArrayToString("", A));
+		Swapper.SwapperImpl<T> swapper = new Swapper.SwapperImpl<T>();
 		QuicksortByDualPivotPartitioning(A, 0, A.length - 1, swapper);
-		System.out.printf("Sorted by Quicksort(DPP) %s in %d swaps, %d compares\n", ArrayProblems.ArrayToString("", A), swapper.SwapCount, swapper.CompareCount);
+		System.out.printf("Sorted by Quicksort(DPP) %s in %d swaps, %d compares\n", ArrayPrint.ArrayToString("", A), swapper.SwapCount, swapper.CompareCount);
 	}
 
 	// Find the kth Largest Using Heap
@@ -228,8 +228,8 @@ public class Sorting {
 	//		Partial Heap-Sort up to k elements in the end
 	//		The k-th element from the end will be your element
 	public static <T extends Comparable<T>> T KthLargest_Heap(T[] A, int k) {
-		Swapper<T> swapper = new Swapper<T>();		
-		System.out.printf("Array %s: %s a Heap -> ", ArrayProblems.ArrayToString("", A), IsHeap(A, HeapType.Min, swapper) ? "is" : "is not");
+		Swapper.SwapperImpl<T> swapper = new Swapper.SwapperImpl<T>();		
+		System.out.printf("Array %s: %s a Heap -> ", ArrayPrint.ArrayToString("", A), IsHeap(A, HeapType.Min, swapper) ? "is" : "is not");
 		
 		// Do partial Heap-Sort for k-elements, after each Heapify stage, swap the top to the last (so that we can reduce the size by -1)
 		for (int i = 0; i < k; i++) {
@@ -251,8 +251,8 @@ public class Sorting {
 	//		Recursively search in that partition
 	private static <T extends Comparable<T>> T KthLargest_DPP(T[] A, int k, int start, int end) {
 		int initialK = k;
-		Swapper<T> swapper = new Swapper<T>();
-		System.out.printf("Array %s:  -> ", ArrayProblems.ArrayToString("", A));
+		Swapper.SwapperImpl<T> swapper = new Swapper.SwapperImpl<T>();
+		System.out.printf("Array %s:  -> ", ArrayPrint.ArrayToString("", A));
 		T retVal = null;
 		
 		while (k > 0) {
@@ -315,7 +315,7 @@ public class Sorting {
 		QuicksortBySinglePivotPartitioning(A);
 		QuicksortBySinglePivotPartitioning(A);
 
-		DualPivotPartition(new Integer[] { 8, 12, 9, 7}, 0, 3, new Swapper<Integer>());
+		DualPivotPartition(new Integer[] { 8, 12, 9, 7}, 0, 3, new Swapper.SwapperImpl<Integer>());
 		A = new Integer[] { 8, 12, 9, 7, 22, 3, 26, 14, 11, 15, 22, 6};
 		QuicksortByDualPivotPartitioning(A);
 		QuicksortByDualPivotPartitioning(A);

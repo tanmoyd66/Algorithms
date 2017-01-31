@@ -3,8 +3,8 @@ package trd.algorithms.strings;
 import java.util.Arrays;
 import java.util.List;
 
-import trd.algorithms.Arrays.ArrayProblems;
-import trd.algorithms.Arrays.ArrayProblems.Swapper;
+import trd.algorithms.utilities.Swapper;
+import trd.algorithms.utilities.Swapper.ISwapper;
 
 public class StringSortingAlgorithms {
 	
@@ -41,7 +41,7 @@ public class StringSortingAlgorithms {
 	}
 
 
-	public static void InsertionSort(String[] A, Swapper<String> swapper, int lo, int hi, int d) { 
+	public static void InsertionSort(String[] A, ISwapper<String> swapper, int lo, int hi, int d) { 
 		// Sort from a[lo] to a[hi], starting at the dth character.
 		for (int i = lo; i <= hi; i++)
 			for (int j = i; j > lo && less(A[j], A[j-1], d); j--)
@@ -56,7 +56,7 @@ public class StringSortingAlgorithms {
 		if (d < s.length()) return s.charAt(d); else return -1; 
 	}
 	
-	private static void MSDSort(String[] A, Swapper<String> swapper, String[] aux, int lo, int hi, int d) { 
+	private static void MSDSort(String[] A, ISwapper<String> swapper, String[] aux, int lo, int hi, int d) { 
 	
 		// For small arrays do insertion sort
 		if (hi <= lo + smallArray) { 
@@ -88,7 +88,7 @@ public class StringSortingAlgorithms {
 	
 	public static void MostSignificantDigitSort(String[] A) {
 		String[] aux = new String[A.length];
-		Swapper<String> swapper = new Swapper<>();
+		Swapper.SwapperImpl<String> swapper = new Swapper.SwapperImpl<>();
 		MSDSort(A, swapper, aux, 0, A.length - 1, 0);
 	}
 
@@ -96,7 +96,7 @@ public class StringSortingAlgorithms {
 	// 		(1) A[lo..lt-1] is an array that has the d-th character smaller than (2)
 	//		(2) A[lt..gt]   is an array that has the d-th character identical
 	//		(3) A[gt+1..hi] is an array that has the d-th character greater than (2)
-	private static void ThreeWayStringQuickSort(String[] A, Swapper<String> swapper, int lo, int hi, int d) {
+	private static void ThreeWayStringQuickSort(String[] A, ISwapper<String> swapper, int lo, int hi, int d) {
 		if (hi <= lo) 
 			return;
 	
@@ -126,7 +126,7 @@ public class StringSortingAlgorithms {
 	}
 	
 	public static void ThreeWayStringQuickSort(String[] a) { 
-		Swapper<String> swapper = new Swapper<>();
+		Swapper.SwapperImpl<String> swapper = new Swapper.SwapperImpl<>();
 		ThreeWayStringQuickSort(a, swapper, 0, a.length - 1, 0); 
 	}
 

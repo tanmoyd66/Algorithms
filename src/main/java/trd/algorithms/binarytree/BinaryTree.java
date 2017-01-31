@@ -177,6 +177,19 @@ public class BinaryTree<T extends Comparable<T>> {
 		System.out.println();
 	}
 	
+	// Maximal Path Sum
+	public T MaximalPathSum(Node<T> node, T maxValue, BiFunction<T, T, T> summer) {
+		T ret = node.value;
+		if (node.left != null) {			
+			ret = summer.apply(ret, MaximalPathSum(node.left, maxValue, summer));
+		}
+		if (node.right != null) {			
+			ret = summer.apply(ret, MaximalPathSum(node.right, maxValue, summer));
+		}
+		if (maxValue.compareTo(ret) > 0)
+			return maxValue;
+		return ret;
+	}
 	// DFS traversal of tree
 	public enum Color { white, gray, black };
 	public static class DFSNode<T extends Comparable<T>, C> {
@@ -521,7 +534,8 @@ public class BinaryTree<T extends Comparable<T>> {
 		int sum = 28;
 		System.out.printf("Path With Sum [%d]:", sum); 
 		tree3a.pathWithSum(sum, (s1,s2)-> (s1 == null ? 0 : s1) + (s2 == null ? 0 : s2));
-
+		System.out.printf("Maximal Path Sum: %d\n", tree3a.MaximalPathSum(tree3a.root, Integer.MIN_VALUE, (a,b)-> (a + b)));
+		
 		if (true) {
 			BinaryTree<Integer> tree4a, tree4b;
 			tree4a = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });

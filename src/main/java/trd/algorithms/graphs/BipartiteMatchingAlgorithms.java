@@ -11,7 +11,12 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class BipartiteMatching <T extends Comparable<T>> extends NetworkFlow<T> {
+import trd.algorithms.graphs.Graph.AlgoSpecificNode;
+import trd.algorithms.graphs.Graph.Color;
+import trd.algorithms.graphs.Graph.Edge;
+import trd.algorithms.graphs.Graph.EdgeType;
+
+public class BipartiteMatchingAlgorithms <T extends Comparable<T>> {
 
 	public static class Matching<T> {
 		T start;
@@ -24,11 +29,9 @@ public class BipartiteMatching <T extends Comparable<T>> extends NetworkFlow<T> 
 		}
 	}
 	
-	public BipartiteMatching(String name) {
-		super(name);
-	}
-	public BipartiteMatching(String name, Mode mode) {
-		super(name, mode);
+	Graph<T> graph;
+	public BipartiteMatchingAlgorithms(Graph<T> graph) {
+		this.graph = graph;
 	}
 	
 	private Set<T> U = new HashSet<T>();
@@ -52,7 +55,7 @@ public class BipartiteMatching <T extends Comparable<T>> extends NetworkFlow<T> 
 			StartNode.color = Color.gray; U.add(StartNode.node.nodeName); bfsQueue.add(StartNode);
 			while (!bfsQueue.isEmpty()) {
 				AlgoSpecificNode<T>  curr = bfsQueue.poll();
-				Collection<Edge<T>> adjOfCurr = this.getEdgesByVertexId(curr.node.node);
+				Collection<Edge<T>> adjOfCurr = graph.getEdgesByVertexId(curr.node.node);
 				for (Edge<T> outEdge : adjOfCurr) {
 					AlgoSpecificNode<T> outTarget = nodeMap.get(outEdge.target);
 					if (outTarget.color == curr.color)
@@ -74,7 +77,7 @@ public class BipartiteMatching <T extends Comparable<T>> extends NetworkFlow<T> 
 
 	public List<Matching<T>> BipartiteMatchingByNetwokFlow(T start, T end) {
 		List<Matching<T>> matchings = new ArrayList<Matching<T>>();
-		Map<Integer,AlgoSpecificNode<T>> nodeMap = InitializeVertexMap(1, 0.0, 0.0);
+		Map<Integer,AlgoSpecificNode<T>> nodeMap = graph.InitializeVertexMap(1, 0.0, 0.0);
 
 		// Validate that this is a Bipartite Graph
 		if (!CheckAndSetPartite(nodeMap))
@@ -82,25 +85,26 @@ public class BipartiteMatching <T extends Comparable<T>> extends NetworkFlow<T> 
 		
 		// Add start and sink vertices and set all edge-weights to 1
 		for (T uVertex : U) {
-			this.addEdge(start, nodeMap.get(getVertexId(uVertex)).node.nodeName, 1.0);
+			graph.addEdge(start, nodeMap.get(graph.getVertexId(uVertex)).node.nodeName, 1.0);
 		}
 		for (T vVertex : V) {
-			this.addEdge(nodeMap.get(getVertexId(vVertex)).node.nodeName, end, 1.0);
+			graph.addEdge(nodeMap.get(graph.getVertexId(vVertex)).node.nodeName, end, 1.0);
 		}
-		for (Edge<T> edge : getAllEdges()) {
+		for (Edge<T> edge : graph.getAllEdges()) {
 			edge.weight = 1.0;
 		}
-		this.startNode = this.getVertexId(start);
+		graph.startNode = graph.getVertexId(start);
 			
 		// Call Network Flow
-		PushRelabel(start, end);
+		NetworkFlowAlgorithms<T> nfAlgos = new NetworkFlowAlgorithms<T>(graph);
+		nfAlgos.PushRelabel(start, end);
 		
 		// Find matchings and add to output
 		for (T uVertex : U) {
-			Collection<Edge<T>> adjOfU = getEdgesByVertexId(getVertexId(uVertex));
+			Collection<Edge<T>> adjOfU = graph.getEdgesByVertexId(graph.getVertexId(uVertex));
 			for (Edge<T> uOut : adjOfU) {
 				if (uOut.flow > 0) {
-					matchings.add(new Matching<T>(getVertexById(uOut.source), getVertexById(uOut.target)));
+					matchings.add(new Matching<T>(graph.getVertexById(uOut.source), graph.getVertexById(uOut.target)));
 					break;
 				}
 			}
@@ -109,9 +113,9 @@ public class BipartiteMatching <T extends Comparable<T>> extends NetworkFlow<T> 
 	}
 	
 	public void MakeBidirectionalWithLayer() {
-		for(Edge<T> e : getAllEdges()) {
-			Edge<T> reverseEdge = new Edge<T>(this, e.target, e.source, 0.0, EdgeType.Augmented);
-			_addEdgeInternal(e.target, e.source, reverseEdge);
+		for(Edge<T> e : graph.getAllEdges()) {
+			Edge<T> reverseEdge = new Edge<T>(graph, e.target, e.source, 0.0, EdgeType.Augmented);
+			graph._addEdgeInternal(e.target, e.source, reverseEdge);
 		}
 	}
 
@@ -122,17 +126,17 @@ public class BipartiteMatching <T extends Comparable<T>> extends NetworkFlow<T> 
 		
 		// Reset the horizon of the BFS
 		for (T u : U) {
-			nodeMap.get(getVertexId(u)).label = 0;
+			nodeMap.get(graph.getVertexId(u)).label = 0;
 		}
 		for (T v : V) {
-			nodeMap.get(getVertexId(v)).label = 0;
+			nodeMap.get(graph.getVertexId(v)).label = 0;
 		}
 		
 		// Start with a free vertex in set U and do a BFS to get a BFS tree (we will encode this as a graph)
 		Set<T>  verticesInDFS = new HashSet<T>();
 		for (T u : U) {
-			Integer uId = getVertexId(u); 
-			Collection<Edge<T>> edges = getEdgesByVertexId(uId);
+			Integer uId = graph.getVertexId(u); 
+			Collection<Edge<T>> edges = graph.getEdgesByVertexId(uId);
 			boolean foundMatchedEdge = false;
 			for (Edge<T> outGoingEdge : edges) {
 				if (outGoingEdge.label == 1) {
@@ -153,7 +157,7 @@ public class BipartiteMatching <T extends Comparable<T>> extends NetworkFlow<T> 
 			
 			// Pop from the top of the queue
 			AlgoSpecificNode<T> curr = bfsQueue.poll();
-			Collection<Edge<T>> edges = getEdgesByVertexId(curr.node.node);			
+			Collection<Edge<T>> edges = graph.getEdgesByVertexId(curr.node.node);			
 
 			// Terminate the search if we have reached a frontier where there are unmatched vertices
 			// We have found an augmenting path then
@@ -200,9 +204,9 @@ public class BipartiteMatching <T extends Comparable<T>> extends NetworkFlow<T> 
 			for (List<T> vPath : dfsResultOnAuxiliaryGraph) {
 				
 				// An augmented path is one that starts and ends in a free vertex
-				Integer vertexAtTheEndOfThisPath = getVertexId(vPath.get(vPath.size() - 1));
+				Integer vertexAtTheEndOfThisPath = graph.getVertexId(vPath.get(vPath.size() - 1));
 				if (!matchMap.containsKey(vertexAtTheEndOfThisPath))
-					augmentingPaths.add(this.VertexPathToEdgePath(vPath));
+					augmentingPaths.add(this.graph.VertexPathToEdgePath(vPath));
 			}
 		}
 		return augmentingPaths;
@@ -211,7 +215,7 @@ public class BipartiteMatching <T extends Comparable<T>> extends NetworkFlow<T> 
  	public List<Matching<T>> BipartiteMatchingByHopcroftKarp() {
 		List<Matching<T>> 					matchings = new ArrayList<Matching<T>>();
 		Map<Integer, Edge<T>> 				matchMap  = new HashMap<Integer, Edge<T>>(); 
-		Map<Integer,AlgoSpecificNode<T>> 	nodeMap   = InitializeVertexMap(1, 0.0, 0.0);
+		Map<Integer,AlgoSpecificNode<T>> 	nodeMap   = graph.InitializeVertexMap(1, 0.0, 0.0);
 
 		// Validate that this is a Bipartite Graph and set the vertex colors
 		// The U vertices will be colored Gray and V vertices Black
@@ -231,7 +235,7 @@ public class BipartiteMatching <T extends Comparable<T>> extends NetworkFlow<T> 
 			// For each augmenting path, remove common edges from the match-map
 			for (List<Edge<T>> augmentingPath : augmentingPaths) {
 				for (Edge<T> edge : augmentingPath) {
-					Edge<T> reverseEdge = getEdgeByStartEnd(edge.target, edge.source);
+					Edge<T> reverseEdge = graph.getEdgeByStartEnd(edge.target, edge.source);
 					if (edge.label == 1) {
 						edge.label = 0;
 						reverseEdge.label = 0;
@@ -249,30 +253,32 @@ public class BipartiteMatching <T extends Comparable<T>> extends NetworkFlow<T> 
 		
 		// return the matchings
 		for (Edge<T> edge : matchMap.values())
-			if (U.contains(getVertexById(edge.source))) 
-				matchings.add(new Matching<T>(getVertexById(edge.source), getVertexById(edge.target)));
+			if (U.contains(graph.getVertexById(edge.source))) 
+				matchings.add(new Matching<T>(graph.getVertexById(edge.source), 
+											  graph.getVertexById(edge.target)));
 		return matchings;
 	}
 	
 	public static void main(String[] args) {
 		if (true) {
-			BipartiteMatching<String> graph;
-			graph = GraphFactory.getBiPartiteGraph2();
+			Graph<String> graph = GraphFactory.getBiPartiteGraph2();
+			BipartiteMatchingAlgorithms<String> bfAlgos = new BipartiteMatchingAlgorithms<>(graph);
 			System.out.printf("Bipartite Matching in %s\n", graph);
 		}
 		if (true) {
-			BipartiteMatching<String> graph;
+			Graph<String> graph = GraphFactory.getBiPartiteGraph2();
+			BipartiteMatchingAlgorithms<String> bfAlgos = new BipartiteMatchingAlgorithms<>(graph);
 			String start = "s", end = "t";
 			graph = GraphFactory.getBiPartiteGraph2();
-			List<Matching<String>> matches = graph.BipartiteMatchingByNetwokFlow(start, end);
+			List<Matching<String>> matches = bfAlgos.BipartiteMatchingByNetwokFlow(start, end);
 			Collections.sort(matches, (a,b) -> a.start.compareTo(b.start));
 			System.out.printf("Using Network  Flow: %s\n", matches);
 		}
 		if (true) {
-			BipartiteMatching<String> graph;
-			graph = GraphFactory.getBiPartiteGraph2();
-			List<Matching<String>> matches = graph.BipartiteMatchingByHopcroftKarp();
-			graph.BipartiteMatchingByHopcroftKarp();
+			Graph<String> graph = GraphFactory.getBiPartiteGraph2();
+			BipartiteMatchingAlgorithms<String> bfAlgos = new BipartiteMatchingAlgorithms<>(graph);
+			List<Matching<String>> matches = bfAlgos.BipartiteMatchingByHopcroftKarp();
+			bfAlgos.BipartiteMatchingByHopcroftKarp();
 			Collections.sort(matches, (a,b) -> a.start.compareTo(b.start));
 			System.out.printf("Using Hopcroft Karp: %s\n", matches);
 		}

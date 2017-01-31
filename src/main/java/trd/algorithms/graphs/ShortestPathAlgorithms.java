@@ -12,30 +12,18 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.function.Function;
 
+import trd.algorithms.graphs.Graph.AlgoSpecificNode;
 import trd.algorithms.graphs.Graph.DFSCallbackReturnTypes;
 import trd.algorithms.graphs.Graph.Edge;
 import trd.algorithms.linkedlists.SinglyLinkedList;
 
-public class ShortestPaths<T extends Comparable<T>> extends Graph<T> {
+public class ShortestPathAlgorithms<T extends Comparable<T>> {
 
-	public ShortestPaths(String name) {
-		super(name);
-	}
-	public ShortestPaths(String name, Mode mode) {
-		super(name, mode);
+	private Graph<T>	graph;
+	public ShortestPathAlgorithms(Graph<T> graph) {
+		this.graph = graph;
 	}
 	
-	// Convert the path into a list of edges
-	public List<Edge<T>> VertexPathToEdgePath(List<T> vPath) { 
-		List<Edge<T>> ePath = new ArrayList<Edge<T>>();
-		T prev = vPath.get(0);
-		for (int i = 1; i < vPath.size(); i++) {
-			Edge<T> thisEdge = getEdgeByStartEnd(prev, vPath.get(i));
-			ePath.add(thisEdge);
-			prev = vPath.get(i);
-		}
-		return ePath;
-	}
 
 	// Calculate the cost of a path
 	public Double GetPathCost(List<Edge<T>> ePath) { 
@@ -56,9 +44,9 @@ public class ShortestPaths<T extends Comparable<T>> extends Graph<T> {
 	//		The shortest path will be guaranteed only after all the edges and vertices are seen
 	public List<Edge<T>> ShortestPath_BellmanFord(T start, T end, Function<Edge<T>, Double> getWeightOfEdge) {
 
-		HashMap<Integer, AlgoSpecificNode<T>> nodeMap = InitializeVertexMap(getVertexId(start), Double.MAX_VALUE, 0.0);
-		Set<Integer> 	vertexSet = getVertexSet();
-		List<Edge<T>>	edgeSet	= this.getAllEdges();
+		HashMap<Integer, AlgoSpecificNode<T>> nodeMap = graph.InitializeVertexMap(graph.getVertexId(start), Double.MAX_VALUE, 0.0);
+		Set<Integer> 	vertexSet = graph.getVertexSet();
+		List<Edge<T>>	edgeSet	= graph.getAllEdges();
 		boolean			retval = true;
 		
 		// For each vertex
@@ -83,12 +71,12 @@ public class ShortestPaths<T extends Comparable<T>> extends Graph<T> {
 		// Iterate over vertices and print the shortest path
 		if (retval) {
 			LinkedList<T> vPath = new LinkedList<T>();
-			AlgoSpecificNode<T> v = nodeMap.get(this.getVertexId(end));
+			AlgoSpecificNode<T> v = nodeMap.get(graph.getVertexId(end));
 			while (v != null) {
-				vPath.addFirst(getVertexById(v.node.node));
+				vPath.addFirst(graph.getVertexById(v.node.node));
 				v = v.parent;
 			}
-			return VertexPathToEdgePath(vPath);
+			return graph.VertexPathToEdgePath(vPath);
 		} else {
 			System.out.printf("Negative weight cycle found.\n");
 			return new LinkedList<Edge<T>>();
@@ -97,19 +85,19 @@ public class ShortestPaths<T extends Comparable<T>> extends Graph<T> {
 
 	// Shortest path using Topological Sort
 	public List<Edge<T>> ShortestPath_DAG(T start, T end, Function<Edge<T>, Double> getWeightOfEdge) {
-		HashMap<Integer, AlgoSpecificNode<T>> nodeMap = InitializeVertexMap(getVertexId(start), Double.MAX_VALUE, 0.0);
+		HashMap<Integer, AlgoSpecificNode<T>> nodeMap = graph.InitializeVertexMap(graph.getVertexId(start), Double.MAX_VALUE, 0.0);
 
 		// Topologically sort all vertices into a singly linked list
 		SinglyLinkedList<T> sll = new SinglyLinkedList<T>();
-		DepthFirstSearch(nodeMap, getVertexSet(), null, 
+		graph.DepthFirstSearch(nodeMap, graph.getVertexSet(), null, 
 						(AlgoSpecificNode<T> node)-> { sll.insertHead(node.node.nodeName); return DFSCallbackReturnTypes.Continue; }, false);
 		
 		// For each vertex in Topologically sorted order
 		for (SinglyLinkedList.Node<T> llNode = sll.getHead(); llNode != null; llNode = llNode.next) {
 
 			// Relax every edge that is in the adjacency list of that vertex
-			Integer nodeId = getVertexId(llNode.value);
-			Collection<Edge<T>> eList = this.getEdgesByVertexId(nodeId);
+			Integer nodeId = graph.getVertexId(llNode.value);
+			Collection<Edge<T>> eList = graph.getEdgesByVertexId(nodeId);
 			for (Edge<T> e : eList) {
 				RelaxEdge(nodeMap, e, getWeightOfEdge);
 			}
@@ -118,12 +106,12 @@ public class ShortestPaths<T extends Comparable<T>> extends Graph<T> {
 		// Iterate over vertices and print the shortest path
 		// System.out.printf(" Using TopSort: {%s} ", sll);
 		LinkedList<T> vPath = new LinkedList<T>();
-		AlgoSpecificNode<T> v = nodeMap.get(this.getVertexId(end));
+		AlgoSpecificNode<T> v = nodeMap.get(graph.getVertexId(end));
 		while (v != null) {
-			vPath.addFirst(getVertexById(v.node.node));
+			vPath.addFirst(graph.getVertexById(v.node.node));
 			v = v.parent;
 		}
-		return this.VertexPathToEdgePath(vPath);
+		return graph.VertexPathToEdgePath(vPath);
 	}
 	
 	private static Double DebuggableMaxDouble = 99999.99;
@@ -131,7 +119,7 @@ public class ShortestPaths<T extends Comparable<T>> extends Graph<T> {
 	// Shortest path using Dijkstra's algorithm
 	public List<Edge<T>> ShortestPath_Dijkstra(T start, T end, Function<Edge<T>, Boolean> qualifies, Function<Edge<T>, Double> getWeightOfEdge) {
 
-		HashMap<Integer, AlgoSpecificNode<T>> nodeMap = InitializeVertexMap(getVertexId(start), DebuggableMaxDouble, 0.0);
+		HashMap<Integer, AlgoSpecificNode<T>> nodeMap = graph.InitializeVertexMap(graph.getVertexId(start), DebuggableMaxDouble, 0.0);
 		
 		// Build a priority queue using vertices of the graph
 		PriorityQueue<AlgoSpecificNode<T>>	pqHeap  = new PriorityQueue<AlgoSpecificNode<T>>((a, b)-> a.node.weight > b.node.weight ? 1 : a.node.weight == b.node.weight? 0 : -1);
@@ -152,7 +140,7 @@ public class ShortestPaths<T extends Comparable<T>> extends Graph<T> {
 				break;
 			
 			// Relax edges for each element in the adjacency list of u
-			Collection<Edge<T>> adjOfu = this.getEdgesByVertexId(u.node.node);
+			Collection<Edge<T>> adjOfu = graph.getEdgesByVertexId(u.node.node);
 			for (Edge<T> edge : adjOfu) {
 
 				Boolean considerEdge = qualifies == null ? true : qualifies.apply(edge);
@@ -176,22 +164,22 @@ public class ShortestPaths<T extends Comparable<T>> extends Graph<T> {
 		}
 		
 		LinkedList<T> vPath = new LinkedList<T>();
-		for (AlgoSpecificNode<T> endNode = nodeMap.get(getVertexId(end)); endNode != null; endNode = endNode.parent) {
+		for (AlgoSpecificNode<T> endNode = nodeMap.get(graph.getVertexId(end)); endNode != null; endNode = endNode.parent) {
 			vPath.add(endNode.node.nodeName);
 		}
 		Collections.reverse(vPath);
-		return vPath.size() == 1 ? new ArrayList<Edge<T>>() : this.VertexPathToEdgePath(vPath);
+		return vPath.size() == 1 ? new ArrayList<Edge<T>>() : graph.VertexPathToEdgePath(vPath);
 	}
 
 	// Shortest path using BidirectionalDijkstra's algorithm
 	public List<Edge<T>> ShortestPath_BiDijkstra(T start, T end, Function<Edge<T>, Double> getWeightOfEdge) {
 
 		// made to look the code clean
-		Graph<T> graphF = this;
-		Graph<T> graphR = this.transpose();
+		Graph<T> graphF = graph;
+		Graph<T> graphR = graph.transpose();
 		
-		HashMap<Integer, AlgoSpecificNode<T>> nodeMapF = InitializeVertexMap(graphF.getVertexId(start), Double.MAX_VALUE, 0.0);
-		HashMap<Integer, AlgoSpecificNode<T>> nodeMapR = InitializeVertexMap(graphR.getVertexId(end),   Double.MAX_VALUE, 0.0);
+		HashMap<Integer, AlgoSpecificNode<T>> nodeMapF = graph.InitializeVertexMap(graphF.getVertexId(start), Double.MAX_VALUE, 0.0);
+		HashMap<Integer, AlgoSpecificNode<T>> nodeMapR = graph.InitializeVertexMap(graphR.getVertexId(end),   Double.MAX_VALUE, 0.0);
 		
 		// Build priority queues in both directions
 		PriorityQueue<AlgoSpecificNode<T>>	pqHeapF  = new PriorityQueue<AlgoSpecificNode<T>>((AlgoSpecificNode<T> a, AlgoSpecificNode<T> b)-> a.node.weight > b.node.weight ? 1 : a.node.weight == b.node.weight? 0 : -1);
@@ -263,26 +251,28 @@ public class ShortestPaths<T extends Comparable<T>> extends Graph<T> {
 			if (f) { f = false; continue; }
 			vPath.add(node.node.nodeName);
 		}
-		return this.VertexPathToEdgePath(vPath);
+		return graph.VertexPathToEdgePath(vPath);
 	}
 	
 	
 	public static void main(String[] args) {
-		ShortestPaths<String> graph5 = GraphFactory.getCLRSPGraph1();
+		
+		Graph<String> graph5 = GraphFactory.getCLRSPGraph1();
+		ShortestPathAlgorithms<String> spAlgos = new ShortestPathAlgorithms<String>(graph5);
 		System.out.println(graph5);
 
 		List<Edge<String>> ePath = null;
 		
-		ePath = graph5.ShortestPath_BellmanFord("s", "z", (x)->x.weight);
-		System.out.printf("SP-Bellman-Ford on [%s] between [%s] to [%s]: %s with Cost:%4.2f\n", graph5.name, "s", "z", ePath, graph5.GetPathCost(ePath));
+		ePath = spAlgos.ShortestPath_BellmanFord("s", "z", (x)->x.weight);
+		System.out.printf("SP-Bellman-Ford on [%s] between [%s] to [%s]: %s with Cost:%4.2f\n", graph5.name, "s", "z", ePath, spAlgos.GetPathCost(ePath));
 		
-		ePath = graph5.ShortestPath_DAG("s", "z", (x)->x.weight);
-		System.out.printf("SP-Topological  on [%s] between [%s] to [%s]: %s with Cost:%4.2f\n", graph5.name, "s", "z", ePath, graph5.GetPathCost(ePath));
+		ePath = spAlgos.ShortestPath_DAG("s", "z", (x)->x.weight);
+		System.out.printf("SP-Topological  on [%s] between [%s] to [%s]: %s with Cost:%4.2f\n", graph5.name, "s", "z", ePath, spAlgos.GetPathCost(ePath));
 
-		ePath = graph5.ShortestPath_Dijkstra("s", "z", null, (x)->x.weight);
-		System.out.printf("SP-Dijkstra     on [%s] between [%s] to [%s]: %s with Cost:%4.2f\n", graph5.name, "s", "z", ePath, graph5.GetPathCost(ePath));
+		ePath = spAlgos.ShortestPath_Dijkstra("s", "z", null, (x)->x.weight);
+		System.out.printf("SP-Dijkstra     on [%s] between [%s] to [%s]: %s with Cost:%4.2f\n", graph5.name, "s", "z", ePath, spAlgos.GetPathCost(ePath));
 
-		ePath = graph5.ShortestPath_BiDijkstra("s", "z", (x)->x.weight);
-		System.out.printf("SP-BiDijkstra   on [%s] between [%s] to [%s]: %s with Cost:%4.2f\n", graph5.name, "s", "z", ePath, graph5.GetPathCost(ePath));
+		ePath = spAlgos.ShortestPath_BiDijkstra("s", "z", (x)->x.weight);
+		System.out.printf("SP-BiDijkstra   on [%s] between [%s] to [%s]: %s with Cost:%4.2f\n", graph5.name, "s", "z", ePath, spAlgos.GetPathCost(ePath));
 	}
 }

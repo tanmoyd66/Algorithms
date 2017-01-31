@@ -73,8 +73,8 @@ public class GraphFactory {
 		return graph1;
 	}
 	
-	public static ShortestPaths<String> getCLRSPGraph1() {
-		ShortestPaths<String> graph1 = new ShortestPaths<String>("getCLRSPGraph1");
+	public static Graph<String> getCLRSPGraph1() {
+		Graph<String> graph1 = new Graph<String>("getCLRSPGraph1");
 		graph1.addEdge("s", "t", 10.0);
 		graph1.addEdge("s", "y", 5.0);
 		graph1.addEdge("t", "y", 2.0);
@@ -88,8 +88,8 @@ public class GraphFactory {
 		return graph1;
 	}
 
-	public static NetworkFlow<String> getCLRNetworkFlowGraph1() {
-		NetworkFlow<String> graph1 = new NetworkFlow<String>("CLRNetworkFlowGraph1");
+	public static Graph<String> getCLRNetworkFlowGraph1() {
+		Graph<String> graph1 = new Graph<String>("CLRNetworkFlowGraph1");
 		graph1.addEdge("s", "v1", 16.0);
 		graph1.addEdge("s", "v2", 13.0);
 		graph1.addEdge("v1","v3", 12.0);
@@ -102,8 +102,19 @@ public class GraphFactory {
 		return graph1;
 	}
 
-	public static NetworkFlow<String> getCLRNetworkFlowGraph2() {
-		NetworkFlow<String> graph1 = new NetworkFlow<String>("CLRNetworkFlowGraph2");
+	public static Graph<String> getEulerCircuitTestGraph() {
+		Graph<String> graph1 = new Graph<String>("EulerCircuitTestGraph");
+		graph1.addEdge("1", "0");
+		graph1.addEdge("0", "2");
+		graph1.addEdge("2", "1");
+		graph1.addEdge("0", "3");
+		graph1.addEdge("3", "4");
+		graph1.addEdge("4", "0");
+		return graph1;
+	}
+
+	public static Graph<String> getCLRNetworkFlowGraph2() {
+		Graph<String> graph1 = new Graph<String>("CLRNetworkFlowGraph2");
 		graph1.addEdge("s", "u", 100.0);
 		graph1.addEdge("s", "v", 100.0);
 		graph1.addEdge("u", "t", 100.0);
@@ -112,8 +123,8 @@ public class GraphFactory {
 		return graph1;
 	}
 	
-	public static BipartiteMatching<String> getBiPartiteGraph1() {
-		BipartiteMatching<String> graph1 = new BipartiteMatching<String>("BiPartiteGraph1");
+	public static Graph<String> getBiPartiteGraph1() {
+		Graph<String> graph1 = new Graph<String>("BiPartiteGraph1");
 		graph1.addEdge("1", "7");
 		graph1.addEdge("1", "6");
 		graph1.addEdge("2", "8");
@@ -126,8 +137,8 @@ public class GraphFactory {
 		return graph1;
 	}
 
-	public static BipartiteMatching<String> getBiPartiteGraph2() {
-		BipartiteMatching<String> graph1 = new BipartiteMatching<String>("BiPartiteGraph2");
+	public static Graph<String> getBiPartiteGraph2() {
+		Graph<String> graph1 = new Graph<String>("BiPartiteGraph2");
 		graph1.addEdge("B", "1");
 		graph1.addEdge("B", "4");
 		graph1.addEdge("E", "7");
@@ -147,5 +158,37 @@ public class GraphFactory {
 		graph1.addEdge("R", "7");
 		return graph1;
 	}
+
+	public static class Point {
+		String		Label;
+		Double		X;
+		Double		Y;
+		public Point(String Label, int X, int Y) {
+			this.Label = Label; this.X = (Double)(double)X; this.Y = (Double)(double)Y;
+		}
+	}
 	
+	public static Graph<String> getTSPGraph1() {
+		Graph<String> 	graph 	= new Graph<String>("TSP Graph1");
+		Point[] 		locs	= new Point[] {
+										new Point("1", 0, 6),
+										new Point("2", 5, 4),
+										new Point("3", 7, 5),
+										new Point("4", 8, 2),
+										new Point("5", 6, 1),
+										new Point("6", 1, 0),
+										new Point("7", 2, 3) };
+		for (int i = 0; i < locs.length; i++) {
+			for (int j = 0; j < locs.length; j++) {
+				if (i == j)
+					continue;
+				Double cost = Math.sqrt((locs[i].X-locs[j].X)*(locs[i].X-locs[j].X) + 
+										(locs[i].Y-locs[j].Y)*(locs[i].Y-locs[j].Y)); 
+				graph.addEdge(locs[i].Label, locs[j].Label, cost);
+				graph.addEdge(locs[j].Label, locs[i].Label, cost);
+				graph.addNodeGarnish(locs[i].Label, locs[i]);
+			}
+		}
+		return graph;
+	}
 }

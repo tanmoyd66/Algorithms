@@ -1,6 +1,8 @@
 package trd.algorithms.linkedlists;
 
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class  SinglyLinkedList<T extends Comparable<T>>  {
@@ -104,6 +106,13 @@ public class  SinglyLinkedList<T extends Comparable<T>>  {
 		insertAfter(tail, other);
 	}
 
+	public List<T> getArray() {
+		List<T> ret = new ArrayList<T>();
+		for (Node<T> node = head; node.next != null; node = node.next)
+			ret.add(node.value);
+		return ret;
+	}
+	
 	public Node<T> findMiddle() {
 		// Start 2 pointers - one scan at 2X speed another at X
 		// When the 2X pointer reaches the end, return the position of X
