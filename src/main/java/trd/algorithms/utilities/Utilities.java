@@ -30,4 +30,9 @@ public class Utilities {
 		if (fPrint)
 			System.out.printf(format, args);
 	}
+	
+	public static <T> void RemoveListElementsFromSet(Set<T> set, Collection<T> list) {
+		for (T elem : list )
+			set.remove(elem);
+	}
 }

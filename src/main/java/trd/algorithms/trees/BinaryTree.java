@@ -1,4 +1,4 @@
-package trd.algorithms.binarytree;
+package trd.algorithms.trees;
 
 import java.security.InvalidParameterException;
 import java.util.Queue;
@@ -484,6 +484,108 @@ public class BinaryTree<T extends Comparable<T>> {
 			     (node.left == null ? true : isBST(node.left, node.value))));
 	}
 	
+	// If one of the nodes is 
+	private Node<T> LowestCommonAncestor(Node<T> node, T val1, T val2) {
+		if (node.value.compareTo(val1) == 0 || node.value.compareTo(val2) == 0)
+			return node;
+
+		// Recurse
+		
+		// if the left child returns non-null and the non-null is not val1 and val2, the left child is the lca
+		Node<T> left = node.left == null ? null : LowestCommonAncestor(node.left, val1, val2);
+		if (left != null && left.value.compareTo(val1) != 0 && left.value.compareTo(val2) != 0)
+			return left;
+
+		// if the right child returns non-null and the non-null is not val1 and val2, the right child is the lca
+		Node<T> right = node.right == null ? null : LowestCommonAncestor(node.right, val1, val2);
+		if (right != null && right.value.compareTo(val1) != 0 && right.value.compareTo(val2) != 0)
+			return right;
+		
+		// if both child return non-null, then this guy is the lca
+		if (left != null && right != null)
+			return node;
+		else if (left != null)
+			return left;
+		else if (right != null)
+			return right;
+		else
+			return null;
+	}
+	
+	public T LowestCommonAncestor(T val1, T val2) {
+		Node<T> lcaNode = LowestCommonAncestor(root, val1, val2);
+		return lcaNode == null ? null : lcaNode.value;
+	}
+	
+	// Build a doubly linked list out of a binary tree
+	// Strategy:
+	//		We will do this in one In-Order traversal
+	//		Remember the direction from the parent (whether node is left or right of parent) 
+	public static enum Direction { Left, Right }
+	private Node<T> buildDoublyLinkedList(Node<T> node, Direction dir) {
+		Node<T> pred = null, succ = null;
+		if (node.left != null) {
+			pred = buildDoublyLinkedList(node.left, Direction.Left);
+			if (pred != null)
+				pred.right = node;
+		}
+		if (node.right != null) {
+			succ = buildDoublyLinkedList(node.right, Direction.Right);
+			if (succ != null)
+				succ.left = node;
+		}
+		node.left = pred; node.right = succ;
+		return (pred == null && succ == null) ? node:
+			(dir == Direction.Left) ? succ : pred;	
+	}
+	public Node<T> buildDoublyLinkedList() {
+		Node<T> start = root;
+		while (start.left != null) 
+			start = start.left;
+		buildDoublyLinkedList(root, Direction.Left);
+		return start;
+	}
+	
+	// Find the largest Binary Search Tree in a Binary Tree
+	public static class BSTInfo<T extends Comparable<T>> {
+		Node<T> root; 
+		int 	size;
+		T		minVal;
+		T		maxVal;
+		public BSTInfo(Node<T> node, int size, T minVal, T maxVal) {
+			this.root = node; this.size = size; this.minVal = minVal; this.maxVal = maxVal;
+		}
+	}
+	
+	public BSTInfo<T> LargestBSTInBinaryTree(Node<T> node) {
+		if (node.left == null && node.right == null)
+			return new BSTInfo<T>(node, 1, node.value, node.value);
+		else {
+			BSTInfo<T> left = null, right = null;
+			if (node.left != null)
+				left = LargestBSTInBinaryTree(node.left);
+			if (node.right != null)
+				right = LargestBSTInBinaryTree(node.right);
+			
+			if (left != null && right != null) {
+				if (left.maxVal.compareTo(node.value) <= 0 && right.minVal.compareTo(node.value) >= 0)
+					return new BSTInfo<T>(node, left.size + 1 + right.size, left.minVal, right.maxVal);
+				else 
+					return left.size < right.size ? right : left;
+			} else if (left == null && right == null) {
+				return null;
+			} else if (left == null && right != null) {
+				return right.minVal.compareTo(node.value) >= 0 ?
+						new BSTInfo<T>(node, right.size + 1, node.value, right.maxVal) :
+						right;
+			} else {
+				return left.maxVal.compareTo(node.value) <= 0 ?
+						new BSTInfo<T>(node, left.size + 1, left.minVal, node.value) :
+						left;
+			}
+		}
+	}
+	
 	public static void main(String[] args) {
 		BinaryTree<Integer> tree1 = new BinaryTree<Integer>(
 										new Node<Integer>(
@@ -545,7 +647,23 @@ public class BinaryTree<T extends Comparable<T>> {
 			System.out.printf("Mirrored: %s ", tree4a);
 			tree4a = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });			
 			tree4b = new BinaryTree<Integer>(thatTree, (String s)-> { return Integer.parseInt(s); });
-			System.out.printf("Are %s mirrors ", tree4a.IsMirror(tree4b) ? "true" :"false");
+			System.out.printf("Are %s mirrors \n", tree4a.IsMirror(tree4b) ? "true" :"false");
+			System.out.printf("LCA of %s and %s is %s \n", 8, 4, tree4a.LowestCommonAncestor(8, 4));
+		}
+
+		if (true) {
+			BinaryTree<Integer> tree5;
+			tree5 = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });
+			Node<Integer> start = tree5.buildDoublyLinkedList();
+			for (Node<Integer> s = start; s != null; s = s.right) 
+				System.out.printf("%s ", s.value);
+			System.out.println();
+		}
+		if (true) {
+			BinaryTree<Integer> tree6;
+			tree6 = new BinaryTree<Integer>("[[[19[15]]18[[18]20[25]]]25[[[20[25]]35[40]]50[[55]60[70]]]]", (String s)-> { return Integer.parseInt(s); });
+			BSTInfo<Integer> lBST = tree6.LargestBSTInBinaryTree(tree6.root);
+			System.out.printf("Largest BST(%d): %s ", lBST.size, lBST.root);
 		}
 	}
 }

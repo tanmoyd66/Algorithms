@@ -66,4 +66,13 @@ public class BitOperations {
 	public static long Unset(long num, int bit) {
 		return num & ~(1 << bit);
 	}
+	
+	public static long TwosComplement(long num) {
+		return ~num + 1;
+	}
+	
+	
+	public static void main(String[] args) {
+		System.out.printf("Twos Complement of %d(%s) is: %d(%s)\n", 3, Integer.toBinaryString(3), TwosComplement(3), Integer.toBinaryString(3));
+	}
 }

@@ -5,16 +5,21 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.Stack;
+import java.util.TreeSet;
 
+import trd.algorithms.Arrays.CombinationGenerator;
 import trd.algorithms.Arrays.PermutationIterator;
 import trd.algorithms.graphs.Graph.AlgoSpecificNode;
 import trd.algorithms.graphs.Graph.Edge;
 import trd.algorithms.graphs.Graph.Node;
 import trd.algorithms.graphs.GraphFactory.Point;
 import trd.algorithms.utilities.ArrayPrint;
+import trd.algorithms.utilities.Utilities;
 
 public class TravellingSalesmanAlgorithms<T extends Comparable<T>> {
 
@@ -81,13 +86,112 @@ public class TravellingSalesmanAlgorithms<T extends Comparable<T>> {
 	//		Then we calculate C[i, V-{i}] for all i
 	//		Then we calculate C[i, 2 at a time] etc..
 	// This algorithm is exponential in nature but better than factorial as in the permutation generation
+	public String getSetRepresentation(Integer end, Collection<Integer> residual) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(end.toString()); sb.append("$");
+		for (Integer x : residual){
+			sb.append(x); sb.append(":");
+		}
+		return sb.toString();
+	}
+
+	private Double ComputeMinCost(Integer source, Collection<Integer> thru, HashMap<String, Double>  memo, HashMap<String, Integer> prevs, Boolean update) {
+		Double  cost = Double.MAX_VALUE; 
+		Integer prev = -1;
+		
+		// For each element in the combination, find the minimal cost
+		// That is: what is the min-cost to go from source to element thru residual
+		for (Integer element : thru) {
+			SortedSet<Integer> residualSet = new TreeSet<Integer>();
+			residualSet.addAll(thru);
+			residualSet.remove(element);
+			
+			// Lookup memo value for Source-Target Combination
+			Edge<T> edge = graph.getEdgeByStartEnd(source, element);
+			if (edge != null) {
+				Double memoVal  = memo.get(getSetRepresentation(source, residualSet));
+				Double thisCost = memoVal + edge.weight;
+				if (thisCost < cost) {
+					cost = thisCost;
+					prev = element;
+				}
+			}
+		}
+		if (update) {
+			String memoKey = getSetRepresentation(source, thru);
+			memo.put(memoKey, cost);
+			prevs.put(memoKey, prev);
+		}
+		return cost;
+	}
 	
+	// g(x, S) =          min      (weight(m,x) + g(m, S - {x}))
+	//			 m!=1, m!=x,m in S
+	//
 	public List<Edge<T>> TSP_HeldKarp(T start) {
-		List<Edge<T>>	bestPath 		= null;
-		Double			bestPathCost	= Double.MAX_VALUE;
+		List<Edge<T>>	bestPath 		= new ArrayList<>();
+		Integer			startVertex		= graph.getVertexId(start);
+		Set<Integer> 	vertexSet 		= new HashSet<Integer>();
+		HashMap<String, Double>  memo	= new HashMap<String, Double>();
+		HashMap<String, Integer> prevs	= new HashMap<String, Integer>();
 		
+		vertexSet.addAll(graph.getVertexSet()); 
+		vertexSet.remove(startVertex);
 		
+		// Initialize with the base of recursion
+		// For all i memo(1:i) = weight(1, i)
+		SortedSet<Integer> Residual = new TreeSet<Integer>();
+		for (int v : vertexSet) {
+			Edge<T> edge = graph.getEdgeByStartEnd(startVertex, v);
+			if (edge != null)
+				memo.put(getSetRepresentation(v, Residual), edge.weight); 
+		}	
+			
+		// Recursive step: Use above formula.
+		// Note that the vertex set has one less vertex
+		for (int R = 1; R < vertexSet.size() + 1; R++) {
+			
+			// Generate the R combinations
+			List<List<Integer>> rCombinations = CombinationGenerator.GenerateAllCombinations(vertexSet, R);
+			
+			// For each of the combinations
+			for (List<Integer> combination : rCombinations) {
+				
+				// Compute Source and Residual Sets
+				Set<Integer> sources = new HashSet<Integer>();
+				sources.addAll(vertexSet);
+				Utilities.RemoveListElementsFromSet(sources, combination);
+				
+				// For each element in the source set
+				for (Integer source : sources) {					
+					ComputeMinCost(source, combination, memo, prevs, true);
+				}
+			}
+		}
 		
+		// Now calculate the optimal tour cost g(1, {2, 3, 4..., n})
+		Double  tourCost  = Double.MAX_VALUE;
+		Integer successor = -1;
+		for (Integer vertex : vertexSet) {
+			Set<Integer> residual = new HashSet<Integer>();
+			residual.addAll(vertexSet); residual.remove(vertex);
+			Double thisCost = ComputeMinCost(vertex, residual, memo, prevs, false);
+			if (thisCost < tourCost) {
+				tourCost = thisCost;
+				successor = vertex;
+			}
+		}
+		
+		// And the tour. So far: [1, successor]
+		bestPath.add(graph.getEdgeByStartEnd(startVertex, successor));
+		while (vertexSet.size() > 1) {
+			vertexSet.remove(successor);
+			String memoKey = getSetRepresentation(successor, vertexSet);
+			Integer nextSuccessor = prevs.get(memoKey);
+			bestPath.add(graph.getEdgeByStartEnd(successor, nextSuccessor));
+			successor = nextSuccessor;
+		}
+		bestPath.add(graph.getEdgeByStartEnd(successor, startVertex));
 		return bestPath;
 	}
 	
@@ -111,8 +215,8 @@ public class TravellingSalesmanAlgorithms<T extends Comparable<T>> {
 		Integer[][] 	Neighbors 		= new Integer[vertexCount][vertexCount];
 		
 
-//		Double[][]		AdjMatrix		= graph.GetAdjacencyMatrix();
-//		System.out.printf("AdjM:%s\n", ArrayPrint.MatrixToString(AdjMatrix, vertexCount, vertexCount));
+		Double[][]		AdjMatrix		= graph.GetAdjacencyMatrix();
+		System.out.printf("AdjM:%s\n", ArrayPrint.MatrixToString(AdjMatrix, vertexCount, vertexCount));
 		
 		// Define comparator to compare points based on their X-Coordinates
 		Comparator<AlgoSpecificNode<T>> comp = (AlgoSpecificNode<T> a, AlgoSpecificNode<T> b) -> {
@@ -156,8 +260,8 @@ public class TravellingSalesmanAlgorithms<T extends Comparable<T>> {
 		}
 
 		// Print the Cost and Neighbor Matrices
-//		System.out.printf("Cost:%s\n", ArrayPrint.MatrixToString(CostMatrix, vertexCount, vertexCount));
-//		System.out.printf("Neighbors:%s\n", ArrayPrint.MatrixToString(Neighbors, vertexCount, vertexCount));
+		System.out.printf("Cost:%s\n", ArrayPrint.MatrixToString(CostMatrix, vertexCount, vertexCount));
+		System.out.printf("Neighbors:%s\n", ArrayPrint.MatrixToString(Neighbors, vertexCount, vertexCount));
 
 		// Construct the tour
 		Stack<AlgoSpecificNode<T>> S0 = new Stack<AlgoSpecificNode<T>>(); 
@@ -249,7 +353,19 @@ public class TravellingSalesmanAlgorithms<T extends Comparable<T>> {
 			TravellingSalesmanAlgorithms<String> tspAlgos = new TravellingSalesmanAlgorithms<String>(graph5);
 			List<Edge<String>> edgeList = tspAlgos.TSP_EuclideanBitonic("1");
 			Double cost = 0.0;
-			System.out.printf("By Bitonic     [");
+			System.out.printf("By DP-Bitonic  [");
+			for (Edge<String> edge : edgeList) {
+				System.out.printf("(%s,%s) ", graph5.getVertexById(edge.source), graph5.getVertexById(edge.target));
+				cost += edge.weight;
+			}
+			System.out.printf("] Total Cost: %4.2f\n", cost);
+		}
+		if (true) {
+			Graph<String> graph5 = GraphFactory.getTSPGraph1();
+			TravellingSalesmanAlgorithms<String> tspAlgos = new TravellingSalesmanAlgorithms<String>(graph5);
+			List<Edge<String>> edgeList = tspAlgos.TSP_HeldKarp("1");
+			Double cost = 0.0;
+			System.out.printf("By DP-HeldKarp [");
 			for (Edge<String> edge : edgeList) {
 				System.out.printf("(%s,%s) ", graph5.getVertexById(edge.source), graph5.getVertexById(edge.target));
 				cost += edge.weight;

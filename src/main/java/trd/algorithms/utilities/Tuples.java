@@ -16,6 +16,9 @@ public class Tuples {
 		public Pair(S s, T t) {
 			elem1 = s; elem2 = t;
 		}
+		public String toString() {
+			return String.format("(%s:%s)", elem1, elem2);
+		}
 	}
 
 	public static class Triple<S,T,U> {

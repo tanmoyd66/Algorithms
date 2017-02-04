@@ -1,4 +1,4 @@
-package trd.algorithms.binarytree;
+package trd.algorithms.trees;
 
 import java.util.Stack;
 

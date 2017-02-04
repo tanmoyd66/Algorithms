@@ -1,4 +1,4 @@
-package trd.algorithms.binarytree;
+package trd.algorithms.trees;
 
 import java.util.Stack;
 
@@ -6,7 +6,7 @@ public class SplayTree<T extends Comparable<T>> extends BinarySearchTree<T> {
 
 	public enum SplayMode { None, Zig, Zag, ZigZig, ZagZag, ZigZag, ZagZig };
 	
-	public SplayTree(trd.algorithms.binarytree.BinaryTree.Node<T> root) {
+	public SplayTree(trd.algorithms.trees.BinaryTree.Node<T> root) {
 		super(root);
 	}
 
