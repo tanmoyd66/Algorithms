@@ -1,4 +1,4 @@
-package trd.algorithms.trees;
+package trd.algorithms.datastructures;
 
 import trd.algorithms.utilities.ArrayPrint;
 
