@@ -2,17 +2,10 @@ package trd.algorithms.Arrays;
 
 import trd.algorithms.utilities.ArrayPrint;
 import trd.algorithms.utilities.Tuples;
+import trd.algorithms.utilities.Utilities;
 import trd.algorithms.utilities.Swapper.SwapperImpl;
 
 public class SearchOnArrays {
-
-	// Reverse an array 
-	public static <S extends Comparable<S>> void rev(S[] A, int start, int end) {
-		SwapperImpl<S> swapper = new SwapperImpl<S>();
-		for (int i = start, j = end; i < j; i++, j--) {
-			swapper.swap(A, i, j);
-		}
-	}
 
 	// Binary Search on Array
 	private static <T extends Comparable<T>> Tuples.Pair<Integer, Integer> BinarySearch(T[] A, T key, int start, int end) {
@@ -58,9 +51,9 @@ public class SearchOnArrays {
 		//		Reverse each piece:            	(k-1,k-2, ...,1,0)(n,n-1...,k+1,k)
 		//		Reverse the whole array:	   	(k,k+1,... ,n-1,n)(0,1,...k-2,k-1)     
 		int k = _k % A.length;
-		rev(A, 0, k - 1);
-		rev(A, k, A.length - 1);
-		rev(A, 0, A.length - 1);
+		Utilities.rev(A, 0, k - 1);
+		Utilities.rev(A, k, A.length - 1);
+		Utilities.rev(A, 0, A.length - 1);
 		System.out.printf("Array %s rotated once %d times is %s\n", ArrayPrint.ArrayToString("", A), k, ArrayPrint.ArrayToString("", A));
 	}
 

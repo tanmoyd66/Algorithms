@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import trd.algorithms.utilities.Swapper.SwapperImpl;
+
 public class Utilities {
 	
 	public static Long LongFromTwoIntegers(int i1, int i2) {
@@ -35,4 +37,13 @@ public class Utilities {
 		for (T elem : list )
 			set.remove(elem);
 	}
+
+	// Reverse an array 
+	public static <S extends Comparable<S>> void rev(S[] A, int start, int end) {
+		SwapperImpl<S> swapper = new SwapperImpl<S>();
+		for (int i = start, j = end; i < j; i++, j--) {
+			swapper.swap(A, i, j);
+		}
+	}
+
 }
