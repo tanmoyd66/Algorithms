@@ -28,4 +28,50 @@ public class ArrayPrint {
 		sb.append("----------------------------\n");
 		return sb.toString();
 	}
+
+	public static String MatrixToString(double[][] A, int M, int N) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("----------------------------\n");
+		for (int row = 0; row < M; row++) {
+			for (int col = 0; col < N; col++) {
+				String sVal;
+				sVal = String.format("%5.2f ", A[row][col]);
+				sb.append(String.format("%-5s ", sVal));
+			}
+			sb.append("\n");
+		}
+		sb.append("----------------------------\n");
+		return sb.toString();
+	}
+
+	public static String MatrixToString(int[][] A, int M, int N) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("----------------------------\n");
+		for (int row = 0; row < M; row++) {
+			for (int col = 0; col < N; col++) {
+				String sVal;
+				sVal = String.format("%3f ", A[row][col]);
+				sb.append(String.format("%-5s ", sVal));
+			}
+			sb.append("\n");
+		}
+		sb.append("----------------------------\n");
+		return sb.toString();
+	}
+
+	public static <S> String MatrixToString(S[][] A) {
+		int M = A.length;
+		int N = A[0].length;
+		return MatrixToString(A, M, N);
+	}
+	public static String MatrixToString(double[][] A) {
+		int M = A.length;
+		int N = A[0].length;
+		return MatrixToString(A, M, N);
+	}
+	public static String MatrixToString(int[][] A) {
+		int M = A.length;
+		int N = A[0].length;
+		return MatrixToString(A, M, N);
+	}
 }

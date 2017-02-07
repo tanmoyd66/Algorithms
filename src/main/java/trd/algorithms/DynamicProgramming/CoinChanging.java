@@ -1,8 +1,13 @@
 package trd.algorithms.DynamicProgramming;
 
+import java.util.Arrays;
+
+import trd.algorithms.utilities.ArrayPrint;
+
 public class CoinChanging {
 	
-	public static Integer[] Denoms = new Integer[] { 25, 10, 5, 1 };
+	public static Integer[] Denoms = new Integer[] { 25, 20, 10, 5, 1 };
+	
 	public static int CountWays_Recursive(int N, int denomAndLower) {
 		int ret = 0;
 		if (N == 0) {
@@ -18,14 +23,31 @@ public class CoinChanging {
 			}
 			ret = count;
 		}
-//		System.out.printf("N = %2d, Denom = %2d ", N, Denoms[denomAndLower]);
-//		System.out.printf("Count = %2d\n", ret);
 		return ret;
 	}
 	
+	public static long CountWays_BottomUpDP(int N, int denomAndLower) {
+		Integer[] table = new Integer[N + 1];
+
+		// Initialize all table values as 0
+		Arrays.fill(table, 0);
+
+		// Base case (If given value is 0)
+		table[0] = 1;
+		
+
+		// Pick one coin at a time
+		for (int i = Denoms.length - 1; i >= 0; i--) {
+			// Fill table[] using that coin
+			for (int j = Denoms[i]; j <= N; j++)
+				table[j] += table[j - Denoms[i]];
+		}
+		return table[N];
+	}
+	
 	public static void main(String[] args) {
-		for (int i = 0; i < 51; i++) {
-			System.out.printf("Number of ways to make: %3d is %3d\n", i, CountWays_Recursive(i, 0));
+		for (int i = 51; i < 100; i++) {
+			System.out.printf("Number of ways to make: %3d is %3d/%3d\n", i, CountWays_Recursive(i, 0), CountWays_BottomUpDP(i, 0));
 		}
 	}
 }
