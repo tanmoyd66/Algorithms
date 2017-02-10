@@ -622,7 +622,10 @@ public class Graph<T extends Comparable<T>> {
 		for (Integer v : vertexSet)
 			mstSet.MakeSet(v);
 		
-		// Loop over edges.
+		// Loop over edges and build a partition
+		// Initially all vertices are in their own partition
+		// In the end, all vertices in the MST go into one partition
+		// This is a greedy algorithm and will work as the edges are sorted on weight
 		for (Edge<T> e : edgeList) {
 
 			DynamicSet.Node<Integer> sourceSet = mstSet.FindSet(e.source);
@@ -632,10 +635,10 @@ public class Graph<T extends Comparable<T>> {
 			// otherwise 
 			if (sourceSet != targetSet) {
 				
-				// add the edge to the tree
+				// add the edge to the MST
 				treeEdges.add(e);
 				
-				// merge the vertices in each of the two trees
+				// merge the vertices into the MST partition
 				mstSet.Union(e.source, e.target);
 			}
 		}
@@ -648,6 +651,8 @@ public class Graph<T extends Comparable<T>> {
 	}
 
 	// Minimal Spanning Tree using Prim's Algorithm
+	// This is also a greedy algorithm
+	// This is very similar to Dijkstra's algorithm
 	public List<Edge<T>> MinimalSpanningTree_Prim(boolean fPrint, T start) {
 		Utilities.Verbose(fPrint, "MST-Prim on [%s]:", name);
 		
@@ -655,7 +660,8 @@ public class Graph<T extends Comparable<T>> {
 		HashMap<Integer, AlgoSpecificNode<T>> 	nodeMap = this.InitializeVertexMap(startId, Double.MAX_VALUE, 0.0);
 		PriorityQueue<AlgoSpecificNode<T>>		pqHeap  = new PriorityQueue<AlgoSpecificNode<T>>((AlgoSpecificNode<T> a, AlgoSpecificNode<T> b)-> a.node.weight > b.node.weight ? 1 : a.node.weight == b.node.weight? 0 : -1);
 		
-		// Get a list of all vertices and create a min-priority queue with all vertices with weights set to a large number
+		// Get a list of all vertices and create a min-priority queue with 
+		// all vertices with weights set to a large number
 		Set<Integer> vertexSet = getVertexSet();
 		for (Integer v : vertexSet) {
 			pqHeap.add(nodeMap.get(v));
