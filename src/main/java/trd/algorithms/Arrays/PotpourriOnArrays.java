@@ -41,6 +41,42 @@ public class PotpourriOnArrays {
 	}
 
 	// Two dimensional Binary Search
+	// A[M,N] is a matrix with the property that: 
+	// 		All rows are sorted in increasing order
+	//		The last element of the previous row is greater than the first element of next
+	//		(Note as consequence: the columns are sorted too)
+	// Given A[M,N] find an element in the matrix
+	// Strategy:
+	//		We will do binary search in the matrix which should look like an array S[0..MN]
+	//		S[k] = A[k/M][k%M]
+	public static <T extends Comparable<T>> Tuples.Pair<Integer, Integer> BinarySearchIn2DMatrix(T[][] A, T key, int M, int N) {
+		boolean found = false;
+		int row = 0, col = 0;
+		
+		// start and end are virtual
+		int start = 0, end = M * N - 1;
+		while (start <= end) {
+			int mid = (start + end) >> 1;
+		
+			// row and col are real
+			row = mid / M; col = mid % N;
+			
+			// Fork left or right based on comparison results
+			int cmp = key.compareTo(A[row][col]);
+			if (cmp == 0) {
+				found = true; break; 
+			} else if (cmp < 0) {
+				end = mid + 1;
+			} else {
+				start = mid + 1;
+			}
+		}
+		System.out.printf("Index in \n%s of key:%s is %s\n", 
+						ArrayPrint.MatrixToString(A, M, N), key, found ? String.format("[%d,%d]", row, col) : "not found");		
+		return found ? new Tuples.Pair<Integer, Integer>(row, col) : null;
+	}
+
+	// Two dimensional Binary Search
 	// A[M,N] is a matrix with the property that: All columns are sorted in ascending order top to bottom and all rows left to right
 	// Given A[M,N] find an element in the matrix
 	// Strategy:
@@ -197,8 +233,15 @@ public class PotpourriOnArrays {
 	}
 	public static void main(String[] args) {
 		if (true) {
-			FindElementIn2DMatrix(new Integer[][] {{10, 20, 30, 40}, {50, 60, 70, 80}, {90, 100, 110, 120}, {130, 140, 150, 160}}, 10 , 4, 4);
 			ReverseWord("I am a bad boy");
+		}
+		
+		if (true) {
+			FindElementIn2DMatrix(new Integer[][] {{10, 20, 30, 40}, {50, 60, 70, 80}, {90, 100, 110, 120}, {130, 140, 150, 160}}, 10 , 4, 4);
+		}
+
+		if (true) {
+			BinarySearchIn2DMatrix(new Integer[][] {{10, 20, 30, 40}, {50, 60, 70, 80}, {90, 100, 110, 120}, {130, 140, 150, 160}}, 100 , 4, 4);
 		}
 		
 		if (true) {
@@ -213,8 +256,10 @@ public class PotpourriOnArrays {
 		}
 		
 		if (true) {
-			String string = "(((()()())()()))";
-			System.out.printf("Longest String of valid parenthesis in %s is %d\n", string, LongestStringOfValidParentheses(string));
+			String[] strings = new String[] {"(((()()())()()))", ")))(((" };
+			for (String string : strings) {
+				System.out.printf("Longest String of valid parenthesis in %s is %d\n", string, LongestStringOfValidParentheses(string));
+			}
 		}
 
 		if (true) {

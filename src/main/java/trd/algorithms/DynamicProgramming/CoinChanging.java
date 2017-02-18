@@ -1,12 +1,14 @@
 package trd.algorithms.DynamicProgramming;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.stream.Stream;
 
 import trd.algorithms.utilities.ArrayPrint;
 
 public class CoinChanging {
 	
-	public static Integer[] Denoms = new Integer[] { 25, 20, 10, 5, 1 };
+	public static Integer[] Denoms = new Integer[] { 25, 10, 5, 1 };
 	
 	public static int CountWays_Recursive(int N, int denomAndLower) {
 		int ret = 0;
@@ -44,10 +46,48 @@ public class CoinChanging {
 		}
 		return table[N];
 	}
+
+	// What is the minimal number of coins to get N
+	// The recursive formula is:
+	//		MC(N) = min(MC(N-Coin[i]) for all i)
+	HashMap<Integer, int[]> memo = new HashMap<Integer, int[]>();
+	public static void Copy(int[] From, int[] To) {
+		for (int i = 0; i < From.length; i++)
+			To[i] = From[i];
+	}
+	
+	public int[] MinimalCoins(int N) {		
+		int[] CoinsUsed = memo.get(N);
+		if (CoinsUsed != null)		
+			return CoinsUsed;
+		
+		CoinsUsed = new int[Denoms.length]; 
+		if (N > 0) {
+			int minCount = Integer.MAX_VALUE;
+			for (int i = 0; i < Denoms.length; i++) {
+				if (Denoms[i] <= N) {
+					int[] countForSubProblem = MinimalCoins(N - Denoms[i]);
+					int totalCount = 1 + Arrays.stream(countForSubProblem).sum();
+					if (totalCount < minCount) {
+						minCount = totalCount;						
+						Copy(countForSubProblem, CoinsUsed);
+						CoinsUsed[i] += 1;
+					}
+				}
+			}
+		}
+		memo.put(N, CoinsUsed);
+		return CoinsUsed;
+	}
 	
 	public static void main(String[] args) {
-		for (int i = 51; i < 100; i++) {
-			System.out.printf("Number of ways to make: %3d is %3d/%3d\n", i, CountWays_Recursive(i, 0), CountWays_BottomUpDP(i, 0));
+//		for (int i = 51; i < 100; i++) {
+//			System.out.printf("Number of ways to make: %3d is %3d/%3d\n", i, CountWays_Recursive(i, 0), CountWays_BottomUpDP(i, 0));
+//		}
+		
+		for (int i = 1; i < 100; i++) {
+			System.out.printf("Minimal Number of coins to make: %3d is %s\n", i, 
+						ArrayPrint.ArrayToString("", new CoinChanging().MinimalCoins(i)));
 		}
 	}
 }

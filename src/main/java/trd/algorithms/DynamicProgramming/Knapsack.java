@@ -77,13 +77,26 @@ public class Knapsack {
 		int maxVal = C[rows - 1][cols - 1];
 		int col = cols - 1, row = 1;
 		List<Integer> ret = new ArrayList<Integer>(); 
+		
+		// Start with the top-right
 		for ( ; col >=0 && row < rows; ) {
+			// Find first row that gave us maxVal
 			if (C[row][col] == maxVal) {
+				
+				// Add the item to our collection
 				ret.add(row - 1);
+				
+				// What is the maxVal by removing this item (row)?
 				maxVal = maxVal - values[row - 1];
 				if (maxVal <= 0) 
 					break;
-				while (C[rows - 1][col] > maxVal) col--;
+				
+				// Move left from bottom right till you get a column that
+				// has this value of maxVal
+				while (C[rows - 1][col] > maxVal) 
+					col--;
+				
+				// Reset the start to the top of this sub-matrix
 				row = 1;
 			} else {
 				row++;
@@ -113,7 +126,7 @@ public class Knapsack {
 			}
 		}
 		
-		//System.out.printf("%s\n", ArrayProblems.MatrixToString(C, values.length + 1, capacity + 1));		
+		System.out.printf("%s\n", ArrayPrint.MatrixToString(C, values.length + 1, capacity + 1));		
 		// Trace back from the right.
 		List<Integer> traceBack = TraceBack(C, values);
 		

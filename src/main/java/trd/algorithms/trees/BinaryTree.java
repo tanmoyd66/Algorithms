@@ -1,6 +1,8 @@
 package trd.algorithms.trees;
 
 import java.security.InvalidParameterException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -483,6 +485,24 @@ public class BinaryTree<T extends Comparable<T>> {
 			     (parentVal == null ? true : node.value.compareTo(parentVal) <= 0) &&
 			     (node.left == null ? true : isBST(node.left, node.value))));
 	}
+
+	// Recursive check for Depth Calculation
+	public int MaxDepth(Node<T> node, int distFromRoot) {
+		if (node == null)
+			return distFromRoot;
+		
+		int leftHeight  = MaxDepth(node.left,  distFromRoot + 1);
+		int rightHeight = MaxDepth(node.right, distFromRoot + 1);
+
+		return leftHeight > rightHeight ? leftHeight : rightHeight;
+	}
+
+	// Recursive check for Height Balance
+	public boolean IsHeightBalanced() {
+		int leftDepth  = MaxDepth(root.left,  0);
+		int rightDepth = MaxDepth(root.right, 0);
+		return Math.abs(leftDepth - rightDepth) <= 1;
+	}
 	
 	// If one of the nodes is 
 	private Node<T> LowestCommonAncestor(Node<T> node, T val1, T val2) {
@@ -586,6 +606,17 @@ public class BinaryTree<T extends Comparable<T>> {
 		}
 	}
 	
+	// Right Rotate Whole Tree
+	public Node<T> RightRotateWholeTree(Node<T> node, Node<T> prev) {
+		if (node == null)
+			return prev;
+		prev = RightRotateWholeTree(node.right, prev);
+		prev = RightRotateWholeTree(node.left, prev);
+		node.right = prev;
+		node.left = null;
+		return node;
+	}
+
 	public static void main(String[] args) {
 		BinaryTree<Integer> tree1 = new BinaryTree<Integer>(
 										new Node<Integer>(
@@ -663,7 +694,19 @@ public class BinaryTree<T extends Comparable<T>> {
 			BinaryTree<Integer> tree6;
 			tree6 = new BinaryTree<Integer>("[[[19[15]]18[[18]20[25]]]25[[[20[25]]35[40]]50[[55]60[70]]]]", (String s)-> { return Integer.parseInt(s); });
 			BSTInfo<Integer> lBST = tree6.LargestBSTInBinaryTree(tree6.root);
-			System.out.printf("Largest BST(%d): %s ", lBST.size, lBST.root);
+			System.out.printf("Largest BST(%d): %s\n", lBST.size, lBST.root);
+		}
+		if (true) {
+			BinaryTree<Integer> tree7;
+			tree7 = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });
+			tree7.RightRotateWholeTree(tree7.root, null);
+			System.out.printf("Right Rotated Tree: %s\n", tree7);
+		}
+		
+		if (true) {
+			BinaryTree<Integer> tree8;
+			tree8 = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });
+			System.out.printf("Tree: %s if Height Balanced: %s\n", tree8, tree8.IsHeightBalanced());
 		}
 	}
 }

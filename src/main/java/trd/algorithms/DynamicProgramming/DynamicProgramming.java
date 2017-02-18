@@ -62,10 +62,10 @@ public class DynamicProgramming {
 
 	//-----------------------------------------------------------------------------------------------------
     // Longest Palindromic substring
-    // P[i,j]   = true if S[i..j] is a palindrome
-    //		    = P[i+1,j-1] + 1 * (S[i] == S[j])
-    // P[i,i]   = 1
-    // P[i,i+1] = (S[i] == S[i+1]) ? 1 : 0
+	// P[i,j] = true if S[i..j] is a palindrome
+	// = P[i+1,j-1] + 1 * (S[i] == S[j])
+	// P[i,i] = 1
+	// P[i,i+1] = (S[i] == S[i+1]) ? 1 : 0
 	public static class LongestPalindromicSubstring {
 		private int lo, maxLen;
 
@@ -75,7 +75,8 @@ public class DynamicProgramming {
 				return s;
 
 			for (int i = 0; i < len - 1; i++) {
-				extendPalindrome(s, i, i); // assume odd length, try to extend Palindrome as possible
+				extendPalindrome(s, i, i); // assume odd length, try to extend
+											// Palindrome as possible
 				extendPalindrome(s, i, i + 1); // assume even length.
 			}
 			return s.substring(lo, lo + maxLen);

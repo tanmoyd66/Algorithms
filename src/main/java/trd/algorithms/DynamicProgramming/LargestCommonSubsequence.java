@@ -109,12 +109,12 @@ public class LargestCommonSubsequence {
 	public static void main(String[] args) {
 		
 		if (true){
-			String s1 = "MAGICIAN", s2 = "MATHEMATICIAN";
-			System.out.printf("Largest Common Subsequence(Memoized) of %s and %s is:[%s]\n", s1, s2, LargestCommonSubsequence_Memoized(s1, s2));
-			System.out.printf("Largest Common Subsequence(Tabular)  of %s and %s is:[%s]\n", s1, s2, LargestCommonSubsequence_Tabular(s1, s2));
-			s1 = "ACCGGTCGAGTGCGCGGAAGCCGGCCGAA"; s2 = "GTCGTTCGGAATGCCGTTGCTCTGTAAA";
-			System.out.printf("Largest Common Subsequence(Memoized) of %s and %s is:[%s]\n", s1, s2, LargestCommonSubsequence_Memoized(s1, s2));
-			System.out.printf("Largest Common Subsequence(Tabular)  of %s and %s is:[%s]\n", s1, s2, LargestCommonSubsequence_Tabular(s1, s2));
+			String[] s1 = new String[] {"MAGICIAN", "ACCGGTCGAGTGCGCGGAAGCCGGCCGAA"};
+			String[] s2 = new String[] {"MATHEMATICIAN", "GTCGTTCGGAATGCCGTTGCTCTGTAAA"};
+			for (int i = 0; i < s1.length; i++) {
+				System.out.printf("LCS(Memoized) of %s and %s is:[%s]\n", s1[i], s2[i], LargestCommonSubsequence_Memoized(s1[i], s2[i]));
+				System.out.printf("LCS(Tabular)  of %s and %s is:[%s]\n", s1[i], s2[i], LargestCommonSubsequence_Tabular(s1[i], s2[i]));
+			}
 		}
 	}
 }

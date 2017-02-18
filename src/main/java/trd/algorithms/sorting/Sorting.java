@@ -105,11 +105,27 @@ public class Sorting {
 	//		We will swap (A[start] and A[lt]) and (A[gt] and A[end]) 
 	public static <T extends Comparable<T>> Tuples.Pair<Integer, Integer> DualPivotPartition(T[] A, int start, int end, ISwapper<T> swapper) {
 				 
+		// handle some corner cases
+		if (end - start + 1 == 2) {
+			if (swapper.less(A[1], A[0])) {
+				swapper.swap(A, 0, 1);
+			}
+			return new Tuples.Pair<Integer, Integer>(start + 0, start + 1);
+		} else if (end - start + 1 == 3) {
+			if (swapper.less(A[1], A[0])) {
+				swapper.swap(A, 0, 1);
+			}
+			if (swapper.less(A[2], A[1])) {
+				swapper.swap(A, 1, 2);
+			}
+			return new Tuples.Pair<Integer, Integer>(start + 1, start + 2);
+		}
+
+		// loop while i and gt does not cross
 		int i  = start + 1;	  // tracks current scan head
 		int lt = start + 1;   // tracks final position of start
 		int gt = end   - 1;	  // tracks final position of end
 
-		// loop while i and gt does not cross
 		while (i <= gt) {
 			if (swapper.less(A[i], A[start])) {
 
@@ -182,13 +198,15 @@ public class Sorting {
 	//		Partition the array into 3 partitions using DPP
 	// 		Based on the partition sizes check which partition the element will lie in
 	//		Recursively search in that partition
-	private static <T extends Comparable<T>> T KthLargest_DPP(T[] A, int k, int start, int end) {
+	public static <T extends Comparable<T>> T KthLargest_DPP(T[] A, int k, int start, int end, ISwapper<T> swapper) {
 		int initialK = k;
-		Swapper.SwapperImpl<T> swapper = new Swapper.SwapperImpl<T>();
 		System.out.printf("Array %s:  -> ", ArrayPrint.ArrayToString("", A));
-		T retVal = null;
-		
-		while (k > 0) {
+		T retVal = A[0];
+
+if (start == 3 && end == 5) {
+	int i = 0;
+}
+		while (k >= 0) {
 			
 			// If we have a singleton set we are searching in, k has to be 1
 			if (start == end) {
@@ -197,48 +215,39 @@ public class Sorting {
 			
 			// Perform a dual pivot partitioning. This will give us 3 segments (start, mid1-1), (mid1+1, mid2-1), (mid2+1, end)
 			Tuples.Pair<Integer, Integer> mid = DualPivotPartition(A, start, end, swapper);
-		
-			// Check which one our k will lie in
-			if (k < mid.elem1 - 1 - start + 1) {
-				// Does it lie in the first segment?
-				end = mid.elem1 - 1;
+
+			// Find which of the 3 segments is K in
+			if (mid.elem1 > 0 && k < (mid.elem1 - start + 1)) {
+				end = mid.elem1;
 			} else {
-				// Reduce k because it should now be somewhere after the 1-st segment
-				k = k - (mid.elem1 - 1 - start + 1);
-				
-				// If k = 1 it should be the first mid point.
-				if (k == 1) {
-					retVal = A[mid.elem1]; break; 
+				if (k == (mid.elem1 - start + 1)) {
+					retVal = A[mid.elem1]; break;
+				} else if (mid.elem2 != null && k < (mid.elem2 - start + 1)) { 
+					k -= (mid.elem1 - start + 1);
+					start = mid.elem1 + 1; end = mid.elem2 - 1;
+				} else if (mid.elem2 != null && k == mid.elem2 - start + 1) {
+					retVal = A[mid.elem2]; break;
+				} else if (mid.elem2 != null) {
+					k -= (mid.elem2 - start + 1);
+					start = mid.elem2 + 1;
 				} else {
-					k--;
-					
-					// Check if k lies in the second segment
-					if (k < ((mid.elem2 - 1) - (mid.elem1 + 1) + 1)) {
-						start = mid.elem2 - 1; end = mid.elem1 + 1;
-						continue;
-					} else {
-						k = k - ((mid.elem2 - 1) - (mid.elem1 + 1) + 1);
-						if (k == 1) {
-							retVal = A[mid.elem2]; break;
-						} else {
-							k--;
-							start = mid.elem2 + 1;
-						}
-					}
+					retVal = null; break;
 				}
 			}
 		}
-		System.out.printf("%d-th largest is %s in %d swaps, %d compares\n", initialK, retVal, swapper.SwapCount, swapper.CompareCount);
+		System.out.printf("%d-th largest is %s in %d swaps, %d compares\n", initialK, retVal, swapper.getSwapCount(), swapper.getCompareCount());
 		return retVal;
 	}
 
 	public static void main(String[] args) {
 		
+		Swapper.SwapperImpl<Integer> swapper = new Swapper.SwapperImpl<Integer>();
+
 		Integer[] A = new Integer[] { 8, 12, 9, 7, 22, 3, 26, 14, 11, 15, 22, 6}; 		
 		KthLargest_Heap(A, 5);
 
 		A = new Integer[] { 8, 12, 9, 7, 22, 3, 26, 14, 11, 15, 22, 6}; 		
-		KthLargest_DPP(A, 5, 0, A.length - 1);
+		KthLargest_DPP(A, 5, 0, A.length - 1, swapper);
 		
 		HeapSort(new Integer[] { 8, 12, 9, 7, 22, 3, 26, 14, 11, 15, 22, 6});
 		SelectionSort(new Integer[] { 8, 12, 9, 7, 22, 3, 26, 14, 11, 15, 22, 6});		

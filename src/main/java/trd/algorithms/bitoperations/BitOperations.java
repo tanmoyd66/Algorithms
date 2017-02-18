@@ -116,9 +116,21 @@ public class BitOperations {
 				(num & 0xff000000) != 0);
 	}
 	
+	public static int NumberOfBitsToConvert(int from, int to) {
+		// The bit difference is the XOR of the two numbers
+		int diff = from ^ to;
+		
+		// Now count the number of bits
+		return BitsSet(diff);
+	}
+	
 	public static void main(String[] args) {
 		System.out.printf("Twos Complement of %d(%s) is: %d(%s)\n", 3, Integer.toBinaryString(3), TwosComplement(3), Integer.toBinaryString(3));
 
+		for (int n = 0; n < 64; n++) {
+			System.out.printf("[%3d]: BinLog:%d\n", n, binlog(n));
+		}
+		
 		for (int n = 0; n < 64; n++) {
 			System.out.printf("[%3d]:", n);
 			System.out.printf("PowerOfTwo(%3d) = %s ", n, IsPowerOfTwo(n) ? "true " : "false");
@@ -129,6 +141,14 @@ public class BitOperations {
 			System.out.printf("HasAZeroByte(%3d) = %s ", n, HasAZeroByte(n));
 			//System.out.printf("PowerSet(%3d) = %s ", n, PowerSet(n));
 			System.out.printf("\n");
+		}
+		
+		if (true) {
+			int from = 10, to = 13;
+			System.out.printf("Number of bits to convert %d(%s) to %d(%s) is %d\n", 
+									from, Integer.toBinaryString(from),
+									to, Integer.toBinaryString(to),
+									NumberOfBitsToConvert(from, to));
 		}
 	}
 }

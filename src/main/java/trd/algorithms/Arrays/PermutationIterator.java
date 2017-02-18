@@ -49,37 +49,34 @@ public class PermutationIterator<T extends Comparable<T>> implements Iterator<T[
 		return ret;
 	}
 
+	// Strategy:
+	//	 Generate by lexicographic ordering
+	//	 We will divide the number into 2 pieces
+	//   [Ascending][Descending]
+	//	 
 	private void GenerateNextPermutation() {
 		
-		int i = indices.length - 2;
-
-		while (i >= 0 && indices[i] > indices[i + 1]) {
-			--i;
+		// Position decrease to the rightmost element in the ascending part
+		int decrease = indices.length - 2;
+		while (decrease >= 0 && indices[decrease] > indices[decrease + 1]) {
+			--decrease;
 		}
 
 		// No more new permutations.
-		if (i == -1) {
+		if (decrease == -1) {
 			nextPermutation = null;
 			return;
 		}
 
-		int j = i + 1;
-		int min = indices[j];
-		int minIndex = j;
-
-		while (j < indices.length) {
-			if (indices[i] < indices[j] && indices[j] < min) {
-				min = indices[j];
-				minIndex = j;
-			}
-
-			++j;
-		}
-
-		swapper.swap(indices, i, minIndex);
-		++i;
-		j = indices.length - 1;
-
+		// Start from the right and find the largest number greater than decrease
+		int larger; 
+		for (larger = indices.length - 1; indices[larger] < indices[decrease]; larger--);
+				
+		// Swap larger and decrease 
+		swapper.swap(indices, decrease, larger);
+		
+		// Reverse the Descending part
+		int j = indices.length - 1; int i = decrease + 1;
 		while (i < j) {
 			swapper.swap(indices, i++, j--);
 		}

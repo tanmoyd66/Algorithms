@@ -6,12 +6,16 @@ public class AssortedStringProblems {
 		String revStr = builder.toString();
 		int len = str.length();
 		int k;
+		
 		for (k = len; k >= 0; k--) {
-			if (str.substring(0, k).equals(revStr.substring(len - k))) {
+			String prefixOfOrig = str.substring(0, k);
+			String suffixOfRev	= revStr.substring(len - k);
+			if (prefixOfOrig.equals(suffixOfRev)) {
 				break;
 			}
 		}
-		return revStr.substring(0, len - k) + str;
+		String prefixOfRev = revStr.substring(0, len - k);
+		return prefixOfRev + str;
 	}
 	
 	public static void main(String[] args) {

@@ -237,6 +237,41 @@ public class  SinglyLinkedList<T extends Comparable<T>>  {
 		return fContinue;
 	}
 	
+	// Check if the Linked List has a loop in it
+	public Node<T> DetectLoop() {
+		if (head == null)
+			return null;
+		
+		Node<T>	slowP = head, fastP = head.next;
+		while (slowP != null && fastP != null) {
+			if (slowP == fastP) {
+				
+				// There is a loop and we are at a rendezvous 
+				Node<T> rendezvous = slowP;
+				
+				// Find the number of nodes in the loop
+				int count = 1;
+				for (Node<T> p = rendezvous; p.next != rendezvous; p = p.next)
+					++count;
+				
+				// Start from head, give one pointer a fast start of count
+				Node<T> p1 = head, p2 = head;
+				for ( ;count > 0; p1 = p1.next, count--);
+				
+				// Now run p1 and p2 in tandem until they meet.
+				while (p1 != p2) { 
+					p1 = p1.next; p2 = p2.next;
+				}	
+				
+				// That meeting point will be the loop start
+				return p1;
+			}
+			slowP = slowP.next;
+			fastP = fastP.next == null ? null : fastP.next.next; 
+		}
+		return null;
+	}
+	
 	public void reverseEveryK(int k) {
 		Node<T> scanX = head, lastReversePoint = null; int numThisScan = 0;
 		while (true) {
@@ -373,5 +408,15 @@ public class  SinglyLinkedList<T extends Comparable<T>>  {
 		System.out.println(linkedList);
 		linkedList.mergeSort();
 		System.out.println(linkedList);
+		
+		// Loop Detection
+		if (true) {
+			SinglyLinkedList<Integer> yasll = new SinglyLinkedList<Integer>();
+			Integer[] list = new Integer[] { 1, 2, 3, 4, 5, 6 };
+			for (int i = 0; i < list.length; i++)
+				yasll.insertTail(list[i]);
+			yasll.tail.next = yasll.head.next.next;
+			Node<Integer> loopStart = yasll.DetectLoop();
+		}
 	}
 }

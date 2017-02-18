@@ -3,7 +3,22 @@ package trd.algorithms.utilities;
 public class ArrayPrint {
 	public static <S> String ArrayToString(String tag, S[] A) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(String.format("%s:[", tag));
+		if (!tag.isEmpty()) {
+			sb.append(tag); sb.append(":");
+		}
+		sb.append(String.format("[", tag));
+		for (int i = 0; i < A.length; i++)
+			sb.append(String.format("%s ", A[i]));
+		sb.append(String.format("]", tag));
+		return sb.toString();
+	}
+
+	public static <S> String ArrayToString(String tag, int[] A) {
+		StringBuilder sb = new StringBuilder();
+		if (!tag.isEmpty()) {
+			sb.append(tag); sb.append(":");
+		}
+		sb.append(String.format("[", tag));
 		for (int i = 0; i < A.length; i++)
 			sb.append(String.format("%s ", A[i]));
 		sb.append(String.format("]", tag));
