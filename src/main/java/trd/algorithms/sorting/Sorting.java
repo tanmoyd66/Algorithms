@@ -1,6 +1,6 @@
 package trd.algorithms.sorting;
-import trd.algorithms.datastructures.Heap;
-import trd.algorithms.datastructures.Heap.HeapType;
+import trd.algorithms.datastructures.HeapOnArray;
+import trd.algorithms.datastructures.HeapOnArray.HeapType;
 import trd.algorithms.utilities.ArrayPrint;
 import trd.algorithms.utilities.Swapper;
 import trd.algorithms.utilities.Swapper.ISwapper;
@@ -50,7 +50,7 @@ public class Sorting {
 		Swapper.SwapperImpl<T> swapper = new Swapper.SwapperImpl<T>();
 		for (int i = 0; i < A.length; i++) {
 			for (int j = (A.length - i)/2; j >= 1; j--) {
-				Heap.Heapify(A, HeapType.Max, j, A.length - i, swapper);
+				HeapOnArray.Heapify(A, HeapType.Max, j, A.length - i, swapper);
 			}
 			swapper.swap(A, 0, A.length - i - 1);
 		}
@@ -178,12 +178,12 @@ public class Sorting {
 	public static <T extends Comparable<T>> T KthLargest_Heap(T[] A, int k) {
 		Swapper.SwapperImpl<T> swapper = new Swapper.SwapperImpl<T>();		
 		System.out.printf("Array %s: %s a Heap -> ", ArrayPrint.ArrayToString("", A), 
-							Heap.IsHeap(A, HeapType.Min, swapper) ? "is" : "is not");
+				HeapOnArray.IsHeap(A, HeapType.Min, swapper) ? "is" : "is not");
 		
 		// Do partial Heap-Sort for k-elements, after each Heapify stage, swap the top to the last (so that we can reduce the size by -1)
 		for (int i = 0; i < k; i++) {
 			for (int j = (A.length - i)/2; j >= 1; j--) {
-				Heap.Heapify(A, HeapType.Min, j, A.length - i, swapper);
+				HeapOnArray.Heapify(A, HeapType.Min, j, A.length - i, swapper);
 			}
 			swapper.swap(A, 0, A.length - i - 1);
 		}
@@ -203,9 +203,6 @@ public class Sorting {
 		System.out.printf("Array %s:  -> ", ArrayPrint.ArrayToString("", A));
 		T retVal = A[0];
 
-if (start == 3 && end == 5) {
-	int i = 0;
-}
 		while (k >= 0) {
 			
 			// If we have a singleton set we are searching in, k has to be 1

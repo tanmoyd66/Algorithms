@@ -75,14 +75,20 @@ public class DynamicProgramming {
 				return s;
 
 			for (int i = 0; i < len - 1; i++) {
-				extendPalindrome(s, i, i); // assume odd length, try to extend
-											// Palindrome as possible
-				extendPalindrome(s, i, i + 1); // assume even length.
+				// assume odd length, try to extend Palindrome as possible
+				extendPalindrome(s, i, i);
+
+				// assume even length.
+				extendPalindrome(s, i, i + 1);
 			}
 			return s.substring(lo, lo + maxLen);
 		}
 
 		private void extendPalindrome(String s, int j, int k) {
+			System.out.printf("[%d,%d]", j, k);
+			// Grow the palindrome from position (j,k) by expanding both ways
+			// Note that we will be called twice - once for j = k and another for k = j + 1
+			// So that we handle the case that (j,j) and (j,j+1) are the centers of palindromes
 			while (j >= 0 && k < s.length() && s.charAt(j) == s.charAt(k)) {
 				j--;
 				k++;
@@ -91,6 +97,7 @@ public class DynamicProgramming {
 				lo = j + 1;
 				maxLen = k - j - 1;
 			}
+			System.out.printf("grown to [%d,%d] (%d,%d)\n", j, k, lo, maxLen);
 		}
 	}
     
@@ -114,7 +121,8 @@ public class DynamicProgramming {
 		}
 		
 		if (true) {
-			String string = "abacdfgdcaba";
+//			String string = "abacdfgdcaba";
+			String string = "cabad";
 	        System.out.printf("Longest Palindromic Substring of %s is: (%s)\n", string, new LongestPalindromicSubstring().getPalindrome(string)); 
 		}
 	}

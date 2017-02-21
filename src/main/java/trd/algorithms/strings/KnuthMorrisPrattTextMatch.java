@@ -128,7 +128,7 @@ public class KnuthMorrisPrattTextMatch {
 	}
 
 	public static void main(String[] args) {
-		KnuthMorrisPrattTextMatch kmp = new KnuthMorrisPrattTextMatch("ababac");
+		KnuthMorrisPrattTextMatch kmp = new KnuthMorrisPrattTextMatch("dbabac");
 		kmp.CompilePattern();
 		String[] texts = new String[] { "zzababzababacaz" };
 		for (String text : texts) {

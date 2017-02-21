@@ -1,6 +1,7 @@
 package trd.algorithms.utilities;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -27,6 +28,13 @@ public class Utilities {
 			ret[i++] = c;
 		return ret;
 	}
+	
+	public static Character[] StringToCharacterArray(String s) {
+		Character[] ret = new Character[s.length()];
+		for (int i = 0; i < s.length(); i++)
+			ret[i] = s.charAt(i);
+		return ret;
+	}
 
 	public static void Verbose(boolean fPrint, String format, Object...args) {
 		if (fPrint)
@@ -45,5 +53,11 @@ public class Utilities {
 			swapper.swap(A, i, j);
 		}
 	}
-
+	
+	public static <T> LinkedList<T> CloneLinkedList(List<T> listT) {
+		LinkedList<T> ret = new LinkedList<T>();
+		for (T t : listT)
+			ret.add(t);
+		return ret;
+	}
 }

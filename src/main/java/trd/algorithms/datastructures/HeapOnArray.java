@@ -5,7 +5,7 @@ import trd.algorithms.utilities.ArrayPrint;
 import trd.algorithms.utilities.Swapper;
 import trd.algorithms.utilities.Swapper.ISwapper;
 
-public class Heap<T extends Comparable<T>> {
+public class HeapOnArray<T extends Comparable<T>> {
 	
 	// Heapify an array of n elements (indexed 1..n)
 	// The number of leaf nodes in the array will be from (n/2 + 1)...(n). The rest (1..n/2) are internal.

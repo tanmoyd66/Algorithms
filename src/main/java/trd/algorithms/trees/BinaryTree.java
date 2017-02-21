@@ -1,8 +1,10 @@
 package trd.algorithms.trees;
 
 import java.security.InvalidParameterException;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -11,6 +13,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import trd.algorithms.utilities.ArrayPrint;
 import trd.algorithms.utilities.Tuples;
 
 public class BinaryTree<T extends Comparable<T>> {
@@ -50,6 +53,7 @@ public class BinaryTree<T extends Comparable<T>> {
 		this.root = root;
 	}
 	
+	// Build from serialized format
 	public BinaryTree(String source, Function<String, T> convertToT) throws InvalidParameterException {
 		char[] sourceAsChars = source.toCharArray();
 		Stack<Tuples.Pair<Boolean, Node<T>>> nodeStack = new Stack<Tuples.Pair<Boolean, Node<T>>>();
@@ -92,6 +96,64 @@ public class BinaryTree<T extends Comparable<T>> {
 		}
 	}
 
+	// Build from InOrder and PreOrder traversal
+	private Node<T> BuildTreeInPre(T[] InOrder, T[] PreOrder, 
+								int inStart,  int inEnd, int preStart,
+								Map<T, Integer> idxMap) {
+		if (inStart > inEnd)
+			return null;
+		else if (inStart == inEnd)
+			return new Node<T>(null, InOrder[inStart], null);
+		else {
+			// Find the root for this segment
+			T thisRoot = PreOrder[preStart];
+			Integer thisRootIdx = idxMap.get(thisRoot);
+			
+			Node<T> left  = BuildTreeInPre(InOrder, PreOrder, inStart, thisRootIdx - 1, preStart + 1,  idxMap);
+			Node<T> right = BuildTreeInPre(InOrder, PreOrder, thisRootIdx + 1, inEnd, thisRootIdx + 1, idxMap);
+			return new Node<T>(left, thisRoot, right);
+		}
+	}
+	public void BuildTreeInPre(T[] InOrder, T[] PreOrder) {
+		
+		// To avoid multiple scans, build a hash table for indexes of In-order entries
+		Map<T, Integer> idxMap = new HashMap<T, Integer>();
+		for (int i = 0; i < InOrder.length; i++)
+			idxMap.put(InOrder[i], i);		
+		
+		// Build Recursively
+		root = BuildTreeInPre(InOrder, PreOrder, 0, InOrder.length - 1, 0, idxMap);
+	}
+
+	// Build from InOrder and PostOrder traversal
+	private Node<T> BuildTreeInPost(T[] InOrder, T[] PostOrder, 
+								int inStart,  int inEnd, int postEnd,
+								Map<T, Integer> idxMap) {
+		if (inStart > inEnd)
+			return null;
+		else if (inStart == inEnd)
+			return new Node<T>(null, InOrder[inStart], null);
+		else {
+			// Find the root for this segment
+			T thisRoot = PostOrder[postEnd];
+			Integer thisRootIdx = idxMap.get(thisRoot);
+			
+			Node<T> left  = BuildTreeInPost(InOrder, PostOrder, inStart, thisRootIdx - 1, thisRootIdx - 1,  idxMap);
+			Node<T> right = BuildTreeInPost(InOrder, PostOrder, thisRootIdx + 1, inEnd, postEnd - 1, idxMap);
+			return new Node<T>(left, thisRoot, right);
+		}
+	}
+	public void BuildTreeInPost(T[] InOrder, T[] PostOrder) {
+		
+		// To avoid multiple scans, build a hash table for indexes of In-order entries
+		Map<T, Integer> idxMap = new HashMap<T, Integer>();
+		for (int i = 0; i < InOrder.length; i++)
+			idxMap.put(InOrder[i], i);		
+		
+		// Build Recursively
+		root = BuildTreeInPost(InOrder, PostOrder, 0, InOrder.length - 1, PostOrder.length - 1, idxMap);
+	}
+	
 	// Traversals
 	public void InOrder() {
 		InOrder(root); System.out.println();
@@ -476,14 +538,30 @@ public class BinaryTree<T extends Comparable<T>> {
 	}
 	
 	// Recursive check for IsBST.
-	// Trick is that you will have to pass the parent node
 	public boolean isBST() {
-		return root == null ? true : isBST(root, null);
+		return root == null ? true : null != isBST(root);
 	}
-	private boolean isBST(Node<T> node, T parentVal) {
-		return (((node.left == null ? true : isBST(node.left, node.value)) &&
-			     (parentVal == null ? true : node.value.compareTo(parentVal) <= 0) &&
-			     (node.left == null ? true : isBST(node.left, node.value))));
+	private Tuples.Pair<T,T> isBST(Node<T> node) {
+		Tuples.Pair<T,T> ret = null; 
+		boolean fContinue = true;
+
+		if (node.left == null && node.right == null) {
+			ret = new Tuples.Pair<T,T>(node.value, node.value);
+		} else {
+			Tuples.Pair<T,T> lRet = null, rRet = null;
+			if (fContinue && node.left != null) {
+				lRet = isBST(node.left);
+				fContinue = lRet != null && lRet.elem1.compareTo(node.value) <= 0;
+			}
+			if (fContinue && node.right != null) {
+				rRet = isBST(node.right);
+				fContinue = rRet != null && rRet.elem1.compareTo(node.value) >= 0;
+			}
+			ret = !fContinue ? 	null : 
+								new Tuples.Pair<T,T>(lRet != null ? lRet.elem1 : node.value,
+													 rRet != null ? rRet.elem2 : node.value);
+		}
+		return ret;
 	}
 
 	// Recursive check for Depth Calculation
@@ -544,27 +622,95 @@ public class BinaryTree<T extends Comparable<T>> {
 	public static enum Direction { Left, Right }
 	private Node<T> buildDoublyLinkedList(Node<T> node, Direction dir) {
 		Node<T> pred = null, succ = null;
-		if (node.left != null) {
-			pred = buildDoublyLinkedList(node.left, Direction.Left);
-			if (pred != null)
-				pred.right = node;
+
+		if (node.left == null && node.right == null) {
+			if (root == null)
+				root = node;
+		} else {
+			if (node.left != null) {
+				pred = buildDoublyLinkedList(node.left, Direction.Left);
+				if (pred != null)
+					pred.right = node;
+			}
+			if (node.right != null) {
+				succ = buildDoublyLinkedList(node.right, Direction.Right);
+				if (succ != null)
+					succ.left = node;
+			}
+			node.left = pred; node.right = succ;
 		}
-		if (node.right != null) {
-			succ = buildDoublyLinkedList(node.right, Direction.Right);
-			if (succ != null)
-				succ.left = node;
-		}
-		node.left = pred; node.right = succ;
 		return (pred == null && succ == null) ? node:
 			(dir == Direction.Left) ? succ : pred;	
 	}
 	public Node<T> buildDoublyLinkedList() {
-		Node<T> start = root;
-		while (start.left != null) 
-			start = start.left;
-		buildDoublyLinkedList(root, Direction.Left);
-		return start;
+		Node<T> oldRoot = root; 
+		root = null;
+		buildDoublyLinkedList(oldRoot, Direction.Left);
+		return root;
 	}
+	
+	private Node<T> buildSinglyLinkedList(Node<T> node, Direction dir) {
+		Node<T> pred = null, succ = null;
+		
+		if (node.left == null && node.right == null) {
+			if (root == null)
+				root = node;
+		} else {
+			if (node.left != null) {
+				pred = buildSinglyLinkedList(node.left, Direction.Left);
+				if (pred != null)
+					pred.right = node;
+			}
+			
+			if (node.right != null) {
+				succ = buildSinglyLinkedList(node.right, Direction.Right);
+				node.right = succ;
+			}
+		}
+		return (pred == null && succ == null) ? node:
+			(dir == Direction.Left) ? succ : pred;	
+	}
+	public void buildSinglyLinkedList() {
+		Node<T> oldRoot = root; 
+		root = null;
+		buildSinglyLinkedList(oldRoot, Direction.Left);
+	}
+
+	// Convert a Tree (assuming BST) in-place to a min-heap
+	// Strategy:
+	//		1. First convert the BST into a Linked List (In-Order)
+	//		2. Set the pointers to build the heap 
+	public void ConvertToMinHeap() {
+		
+		// First Build a Singly Linked List
+		this.buildSinglyLinkedList();
+		
+		if (root == null)
+			return;
+		
+		// Then convert the singly linked list into a min-heap using a queue
+		Queue<Node<T>> queue = new ConcurrentLinkedQueue<Node<T>>();
+		queue.add(root); 
+		Node<T> curr = root.right;
+		root.left = root.right = null;
+		while (!queue.isEmpty() && curr != null) {
+			Node<T> top = queue.poll();
+			top.left = curr;
+			if (top.left != null) {
+				queue.add(top.left); 
+				curr = curr.right;
+				top.left.left = top.left.right = null;
+				top.right = curr;
+				if (top.right != null) {
+					queue.add(top.right);
+					curr = curr.right;
+					top.right.left = top.right.right = null;
+				}
+			}
+		}
+	}
+	
+
 	
 	// Find the largest Binary Search Tree in a Binary Tree
 	public static class BSTInfo<T extends Comparable<T>> {
@@ -617,6 +763,112 @@ public class BinaryTree<T extends Comparable<T>> {
 		return node;
 	}
 
+	// Find Leaf Nodes from a pre-order traversal
+	public static <T extends Comparable<T>> void FindLeafNodes(T[] A, int low, int high, List<T> leaves) {
+
+		// Base cases
+		if (A.length == 0 || low > high)
+			return;
+		else if (low == high || low == high - 1) {
+			leaves.add(A[high]);
+			return;
+		} else {
+			
+			int j = low + 1;
+			
+			// increasing sequences always result in internal nodes 
+			while (j <= high && A[j].compareTo(A[low]) < 0)
+				j++;
+			
+			// recurse
+			FindLeafNodes(A, low + 1, j - 1, leaves);
+			FindLeafNodes(A, j, high, leaves);
+		}
+	}
+
+	// Find First Non-matching leaves in 2 pre-order traversals
+	public static <T extends Comparable<T>> T FindFirstNonMatchingLeaves(T[] A, T[] B) {
+		
+		List<T> leavesA = new ArrayList<T>(), leavesB = new ArrayList<T>(); 
+		FindLeafNodes(A, 0, A.length - 1, leavesA);
+		FindLeafNodes(B, 0, B.length - 1, leavesB);
+
+		// Now find the first non-matching
+		int iMax = Math.min(leavesA.size(), leavesB.size());
+		int i = 0;
+		for (; i < iMax; i++) {
+			T leafA = leavesA.get(i);
+			T leafB = leavesB.get(i);
+			if (leafA.compareTo(leafB) != 0)
+				return leafA;
+		}
+		return i > leavesA.size() ? 
+					i > leavesB.size() ? leavesB.get(i) : null : 
+					leavesA.get(i);
+	}
+		
+	// Column Order Traversal
+	public static class NodeEx<T extends Comparable<T>> extends Node<T> {
+		Integer col;
+		Integer row;
+		Node<T> node;
+		public NodeEx(Integer row, Integer col, Node<T> node) {
+			this.row = row; this.col = col; this.node = node;
+		}
+		public String toString() {
+			return node.value.toString();
+		}
+	}
+	private void ColumnOrder(Node<T> node, Map<Integer, List<NodeEx<T>>> vertexMap, int row, int col) {
+		if (node == null)
+			return;
+		else {
+			// Add nodes to vertex map in pre-order
+			List<NodeEx<T>> vMapEntry = vertexMap.get(col);
+			if (vMapEntry == null) {
+				vMapEntry = new ArrayList<NodeEx<T>>();
+				vertexMap.put(col, vMapEntry);
+			}
+			vMapEntry.add(new NodeEx<>(row, col, node));
+			
+			// Traverse Children
+			ColumnOrder(node.left,  vertexMap, row + 1, col - 1);
+			ColumnOrder(node.right, vertexMap, row + 1, col + 1);
+		}
+	}
+	public void ColumnOrderTraversal() {
+		Map<Integer, List<NodeEx<T>>> vertexMap = new HashMap<Integer, List<NodeEx<T>>>();
+		ColumnOrder(root, vertexMap, 0, 0);
+		
+		// Create a Matrix so that printing is easy. Then print.
+		int row = 0, col = 0, colMin = Integer.MAX_VALUE, colMax = Integer.MIN_VALUE;
+		for (Map.Entry<Integer, List<NodeEx<T>>> me : vertexMap.entrySet()) {
+			List<NodeEx<T>> values = me.getValue();
+			for (NodeEx<T> value : values) {
+				row 	= Math.max(row, value.row);
+				colMin 	= Math.min(colMin, value.col);
+				colMax 	= Math.max(colMax, value.col);
+			}
+		}
+		col = colMax - colMin;
+		Object[][] printable = new Object[row + 1][col + 1];
+		for (Map.Entry<Integer, List<NodeEx<T>>> me : vertexMap.entrySet()) {
+			List<NodeEx<T>> values = me.getValue();
+			for (NodeEx<T> value : values) {
+				
+				// Xlate the columns as they may be negative
+				int XlatedRow = value.row, XlatedCol = value.col - colMin;
+				printable[XlatedRow][XlatedCol] = value.node.value;
+			}
+		}
+		for (int i = 0; i < row + 1; i++) {
+			for (int j = 0; j < col + 1; j++)
+				System.out.printf("%4s ", printable[i][j] == null ? "   " : printable[i][j]);
+			System.out.println();
+		}
+	}
+	
+	
 	public static void main(String[] args) {
 		BinaryTree<Integer> tree1 = new BinaryTree<Integer>(
 										new Node<Integer>(
@@ -634,7 +886,7 @@ public class BinaryTree<T extends Comparable<T>> {
 		BinaryTree<String> tree2 = new BinaryTree<String>("[[[f]b]a[[d]c[e]]]", (String s)-> { return s; });
 		System.out.println(tree2);
 
-		BinaryTree<Integer> tree3a = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });
+		BinaryTree<Integer> tree3a = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]18]]]", (String s)-> { return Integer.parseInt(s); });
 		System.out.printf("%s: IsBST:%s\n", tree3a, tree3a.isBST() ? "true" : "false");
 
 		System.out.println("----------------------------------------------------");
@@ -654,6 +906,9 @@ public class BinaryTree<T extends Comparable<T>> {
 		System.out.printf("ReverseOrder:    "); tree3a.SBTReverse(null, (Node<Integer> n)-> { System.out.printf("%s ", n.value); return true;  }, null); System.out.println();
 		System.out.println("----------------------------------------------------");
 
+		// Column Order Traversal
+		tree3a.ColumnOrderTraversal();
+		
 		// Find Successor
 		int nodeVal = 11; 
 		tree3a.successor(nodeVal);
@@ -683,12 +938,28 @@ public class BinaryTree<T extends Comparable<T>> {
 		}
 
 		if (true) {
-			BinaryTree<Integer> tree5;
-			tree5 = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });
-			Node<Integer> start = tree5.buildDoublyLinkedList();
+			BinaryTree<Integer> tree5a;
+			tree5a = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });
+			Node<Integer> start = tree5a.buildDoublyLinkedList();
 			for (Node<Integer> s = start; s != null; s = s.right) 
 				System.out.printf("%s ", s.value);
 			System.out.println();
+		}
+
+		if (true) {
+			BinaryTree<Integer> tree5b;
+			tree5b = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });
+			tree5b.buildSinglyLinkedList();
+			for (Node<Integer> s = tree5b.root; s != null; s = s.right) 
+				System.out.printf("%s ", s.value);
+			System.out.println();
+		}
+
+		if (true) {
+			BinaryTree<Integer> tree5c;
+			tree5c = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });
+			tree5c.ConvertToMinHeap();
+			System.out.printf("Min-Heap: %s\n", tree5c.root);
 		}
 		if (true) {
 			BinaryTree<Integer> tree6;
@@ -707,6 +978,36 @@ public class BinaryTree<T extends Comparable<T>> {
 			BinaryTree<Integer> tree8;
 			tree8 = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });
 			System.out.printf("Tree: %s if Height Balanced: %s\n", tree8, tree8.IsHeightBalanced());
+		}
+		
+		if (true) {
+			BinaryTree<Integer> tree8a = new BinaryTree<>(null);
+			BinaryTree<Integer> tree8b = new BinaryTree<>(null);
+			String deser = "[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]";
+			Integer[] inOrder   = new Integer[] { 2, 3, 4, 8, 9, 11, 13, 17, 19, 23 };
+			Integer[] preOrder  = new Integer[] { 11, 8, 3, 2, 4, 9, 17, 13, 23, 19 };
+			Integer[] postOrder = new Integer[] { 2, 4, 3, 9, 8, 13, 19, 23, 17, 11 };
+			
+			tree8a.BuildTreeInPre(inOrder, preOrder);
+			tree8b.BuildTreeInPost(inOrder, postOrder);
+			String ser = tree8a.toString();
+			System.out.printf("%s into %s: %s\n", deser, ser, ser.equals(deser));
+			ser = tree8b.toString();
+			System.out.printf("%s into %s: %s\n", deser, ser, ser.equals(deser));
+		}
+
+		if (true) {
+			Integer[] A  = new Integer[] { 11, 8, 3, 2, 4, 9, 17, 13, 23, 19 };
+			List<Integer> leavesA = new ArrayList<Integer>();
+			FindLeafNodes(A, 0, A.length - 1, leavesA);
+		}
+
+		if (true) {
+			Integer[] A  = new Integer[] { 5, 4, 2, 4, 8, 6, 9 };
+			Integer[] B  = new Integer[] { 5, 3, 2, 4, 8, 7, 9 };
+			Integer leaf = FindFirstNonMatchingLeaves(A, B);
+			System.out.printf("%s, %s: %s\n", 
+						ArrayPrint.ArrayToString("A", A), ArrayPrint.ArrayToString("B", B), leaf);
 		}
 	}
 }

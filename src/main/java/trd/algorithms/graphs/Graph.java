@@ -563,10 +563,11 @@ public class Graph<T extends Comparable<T>> {
 	}	
 
 	// Topological Sorting
-	public void TopologicalSort(boolean fPrint) {
+	public SinglyLinkedList<T> TopologicalSort(boolean fPrint) {
 		SinglyLinkedList<T> sll = new SinglyLinkedList<T>();
 		DepthFirstSearch(null, (AlgoSpecificNode<T> node)-> { sll.insertHead(node.node.nodeName); return DFSCallbackReturnTypes.Continue;});
 		Utilities.Verbose(fPrint, "TopSort on [%s]:%s\n", name, sll);
+		return sll;
 	}
 	
 	// Breadth first search of general graphs

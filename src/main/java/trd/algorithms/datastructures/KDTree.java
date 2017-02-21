@@ -157,9 +157,6 @@ public class KDTree<T extends Comparable<T>> {
 		Double radiusOfSearch = distancer.apply(ref, curr);
 		Double distFromThis   = distancer.apply(ref, node.point);
 
-System.out.printf("Visiting Node: %s (%s) Reference: %s, Radius:%s\n", node.point, distFromThis, curr, radiusOfSearch);
-
-		
 		// Leaf Node case
 		if (node.left == null && node.right == null) {
 			return distFromThis < radiusOfSearch ? node.point : curr;	
