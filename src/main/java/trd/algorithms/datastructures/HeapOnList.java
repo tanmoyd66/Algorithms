@@ -1,10 +1,11 @@
 package trd.algorithms.datastructures;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Random;
 import java.util.function.BiFunction;
 
-public class HeapOnList<T> {
+public class HeapOnList<T extends Comparable<T>> {
 	public enum HeapType { Min, Max };
 
 	int initialSize = 10;
@@ -82,6 +83,10 @@ public class HeapOnList<T> {
 		return elements.size();
 	}
 
+	public Collection<T> getElements() {
+		return elements;
+	}
+	
 	public static void main(String[] args) {
 		if (true) {
 			Random rand = new Random();

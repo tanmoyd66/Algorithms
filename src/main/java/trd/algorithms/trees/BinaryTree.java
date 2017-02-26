@@ -198,7 +198,7 @@ public class BinaryTree<T extends Comparable<T>> {
 	}
 
 	// Level Order ZigZag
-	public void LevelOrderZigZag() {
+	public void LevelOrderZigZag_Tuples() {
 		Queue<Tuples.Pair<Integer, Node<T>>> nodeQ = new ConcurrentLinkedQueue<Tuples.Pair<Integer, Node<T>>>();
 		Stack<Node<T>> stack = new Stack<Node<T>>();
 		
@@ -232,6 +232,47 @@ public class BinaryTree<T extends Comparable<T>> {
 				nodeQ.add(new Tuples.Pair<Integer, Node<T>>(level + 1, node.left));
 			if (node.right != null)
 				nodeQ.add(new Tuples.Pair<Integer, Node<T>>(level + 1, node.right));
+		}
+		
+		// In case the last level was an even level, flush the last level
+		while (!stack.empty()) {
+			System.out.printf("%s ", stack.pop().value);
+		}
+		System.out.println();
+	}
+	
+	// Level Order ZigZag
+	public void LevelOrderZigZag_JustNodes() {
+		Queue<Node<T>> nodeQ = new ConcurrentLinkedQueue<Node<T>>();
+		Stack<Node<T>> stack = new Stack<Node<T>>();
+		
+		// Breadth first search with the root as the first node
+		int level = 0;
+		nodeQ.add(root);
+		while (!nodeQ.isEmpty()) {
+		
+			// size will be the size of the frontier
+			// loop over all nodes in the frontier
+			int size = nodeQ.size();
+			for (int i = 0; i < size; i++) {
+
+				// Pop the queue and print if necessary
+				Node<T> node = nodeQ.poll();
+				if (level % 2 == 1) {
+					stack.push(node);
+				} else {
+					System.out.printf("%s ", node.value);
+				}
+				
+				// Grow the frontier
+				if (node.left != null)
+					nodeQ.add(node.left);
+				if (node.right != null)
+					nodeQ.add(node.right);
+			}
+			while (!stack.isEmpty())
+				System.out.printf("%s ", stack.pop().value);
+			level++;
 		}
 		
 		// In case the last level was an even level, flush the last level
@@ -901,7 +942,8 @@ public class BinaryTree<T extends Comparable<T>> {
 		System.out.printf("PostOrder(sbt):  "); tree3a.SBT(null, null, (Node<Integer> n)-> { System.out.printf("%s ", n.value); return true; }); System.out.println();
 		System.out.println("----------------------------------------------------");
 		System.out.printf("LevelOrder:      "); tree3a.LevelOrder();
-		System.out.printf("LevelOrderZigZag:"); tree3a.LevelOrderZigZag();
+		System.out.printf("LevelOrderZigZag:"); tree3a.LevelOrderZigZag_Tuples();
+		System.out.printf("LevelOrderZigZag:"); tree3a.LevelOrderZigZag_JustNodes();
 		System.out.println("----------------------------------------------------");
 		System.out.printf("ReverseOrder:    "); tree3a.SBTReverse(null, (Node<Integer> n)-> { System.out.printf("%s ", n.value); return true;  }, null); System.out.println();
 		System.out.println("----------------------------------------------------");

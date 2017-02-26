@@ -9,7 +9,7 @@ import trd.algorithms.utilities.Swapper.ISwapper;
 public class StringSortingAlgorithms {
 	
 	private static final int radix 		= 256;
-	private static final int smallArray = 15; 
+	private static final int smallArray = 3; 
 	
 	public static void LeastSignificantDigitSort(String[] A, int maxDigits) { 
 
@@ -28,7 +28,7 @@ public class StringSortingAlgorithms {
 	
 			// Transform counts to indices.
 			for (int r = 0; r < radix; r++) 
-				count[r+1] += count[r];
+				count[r + 1] += count[r];
 	
 			// Distribute, using auxiliary array
 			for (int i = 0; i < size; i++) 
@@ -83,7 +83,7 @@ public class StringSortingAlgorithms {
 		
 		// Recursively sort for each character value.
 		for (int r = 0; r < radix; r++)
-			MSDSort(A, swapper, aux, lo + count[r], lo + count[r+1] - 1, d+1);
+			MSDSort(A, swapper, aux, lo + count[r], lo + count[r+1] - 1, d + 1);
 	}
 	
 	public static void MostSignificantDigitSort(String[] A) {

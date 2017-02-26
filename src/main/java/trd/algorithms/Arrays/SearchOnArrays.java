@@ -35,26 +35,26 @@ public class SearchOnArrays {
 	public static <T extends Comparable<T>> void Rotate_By1(T[] A, int k) {
 		// strategy is to rotate the array k times by 1
 		for (int i = 0; i < k; i++) {
-			T t = A[0];
-			for (int j = 1; j < A.length; j++) {
-				A[j - 1] = A[j];
+			T t = A[A.length - 1];
+			for (int j = A.length - 2; j >= 0; j--) {
+				A[j + 1] = A[j];
 			}
-			A[A.length - 1] = t;
+			A[0] = t;
 		}
 		System.out.printf("Array %s rotated -X-1 %d times is %s\n", ArrayPrint.ArrayToString("", A), k, ArrayPrint.ArrayToString("", A));
 	}
 
-	// Rotate Array in two steps
+	// Rotate Array Left in two steps
 	public static <T extends Comparable<T>> void Rotate(T[] A, int _k) {
 		// Strategy:
 		//		Break the array into 2 pieces: 	(0,1, ...,k-2,k-1)(k,k+1...,n-1,n)
 		//		Reverse each piece:            	(k-1,k-2, ...,1,0)(n,n-1...,k+1,k)
 		//		Reverse the whole array:	   	(k,k+1,... ,n-1,n)(0,1,...k-2,k-1)     
-		int k = _k % A.length;
+		int k = A.length - _k;
 		Utilities.rev(A, 0, k - 1);
 		Utilities.rev(A, k, A.length - 1);
 		Utilities.rev(A, 0, A.length - 1);
-		System.out.printf("Array %s rotated once %d times is %s\n", ArrayPrint.ArrayToString("", A), k, ArrayPrint.ArrayToString("", A));
+		System.out.printf("Array %s rotated once %d times is %s\n", ArrayPrint.ArrayToString("", A), _k, ArrayPrint.ArrayToString("", A));
 	}
 
 	// Find number of rotations on an array
@@ -70,17 +70,18 @@ public class SearchOnArrays {
 			int prev = (mid + A.length - 1) % A.length;
 			if (A[prev].compareTo(A[mid]) > 0 &&
 				A[next].compareTo(A[mid]) > 0) {
-				index = A.length - mid; break;
+				index = A.length - mid; 
+				break;
 			}
 			
-			// check if left is sorted. if so, recurse right
 			if (A[start].compareTo(A[mid]) <= 0) {
-				start = mid + 1; continue;
-			}
-		
-			// check if right is sorted. if so, recurse left
-			if (A[mid].compareTo(A[end]) >= 0) {
-				end = mid - 1; continue;
+				// check if left is sorted. if so, recurse right
+				start = mid + 1;
+			} else {
+				// check if right is sorted. if so, recurse left
+				if (A[mid].compareTo(A[end]) >= 0) {
+					end = mid - 1;
+				}
 			}
 		}
 		
@@ -167,13 +168,15 @@ public class SearchOnArrays {
 		}
 		
 		if (true) {
-			Rotate_By1(new Integer[] {-11, -10, -8, 8, 6, 11, 12, 23}, 2);
-			Rotate_By1(new Integer[] {-11, -10, -8, 8, 6, 11, 12, 23}, 4);
+			Rotate_By1(new Integer[] {1, 2, 3, 4, 5, 6, 7, 8}, 2);
+			Rotate_By1(new Integer[] {1, 2, 3, 4, 5, 6, 7, 8}, 4);
 		}
 		
 		if (true) {
-			Rotate(new Integer[] {-11, -10, -8, 8, 6, 11, 12, 23}, 2);
-			Rotate(new Integer[] {-11, -10, -8, 8, 6, 11, 12, 23}, 4);
+			Rotate(new Integer[] {1, 2, 3, 4, 5, 6, 7, 8}, 0);
+			Rotate(new Integer[] {1, 2, 3, 4, 5, 6, 7, 8}, 1);
+			Rotate(new Integer[] {1, 2, 3, 4, 5, 6, 7, 8}, 2);
+			Rotate(new Integer[] {1, 2, 3, 4, 5, 6, 7, 8}, 4);
 		}
 		
 		if (true) {

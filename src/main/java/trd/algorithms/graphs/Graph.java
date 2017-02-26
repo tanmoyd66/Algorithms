@@ -399,7 +399,9 @@ public class Graph<T extends Comparable<T>> {
 			if (dfsnTarget.color == Color.white) {
 				
 				dfsnTarget.parent = dfsNode;
-				DFSCallbackReturnTypes ret = nodeExplored == null ? DFSCallbackReturnTypes.Continue : nodeExplored.apply(dfsnTarget);
+				DFSCallbackReturnTypes ret = nodeExplored == null ? 
+												DFSCallbackReturnTypes.Continue : 
+												nodeExplored.apply(dfsnTarget);
 				if (ret == DFSCallbackReturnTypes.AbandonSearch) {
 					dfsnTarget.parent = null;
 					return;
@@ -414,7 +416,9 @@ public class Graph<T extends Comparable<T>> {
 		}
 		
 		// process the node
-		DFSCallbackReturnTypes ret = nodeComplete == null ? DFSCallbackReturnTypes.Continue : nodeComplete.apply(dfsNode);
+		DFSCallbackReturnTypes ret = nodeComplete == null ? 
+				DFSCallbackReturnTypes.Continue : 
+				nodeComplete.apply(dfsNode);
 		if (ret == DFSCallbackReturnTypes.AbandonSearch)
 			return;
 		else if (ret == DFSCallbackReturnTypes.AbandonThisNode) {
@@ -565,7 +569,9 @@ public class Graph<T extends Comparable<T>> {
 	// Topological Sorting
 	public SinglyLinkedList<T> TopologicalSort(boolean fPrint) {
 		SinglyLinkedList<T> sll = new SinglyLinkedList<T>();
-		DepthFirstSearch(null, (AlgoSpecificNode<T> node)-> { sll.insertHead(node.node.nodeName); return DFSCallbackReturnTypes.Continue;});
+		DepthFirstSearch(null, (AlgoSpecificNode<T> node)-> { 
+									sll.insertHead(node.node.nodeName); 
+									return DFSCallbackReturnTypes.Continue;});
 		Utilities.Verbose(fPrint, "TopSort on [%s]:%s\n", name, sll);
 		return sll;
 	}

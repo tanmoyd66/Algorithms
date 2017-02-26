@@ -53,7 +53,6 @@ public class PalindromicPermutations {
 
 			// Generate permutations recursively
 			generatePermutations(0, new ArrayList<StringBuilder>());
-
 			
 			for (Character c : char_map.keySet()) {
 				unique_chars = c.toString();
@@ -109,8 +108,6 @@ public class PalindromicPermutations {
 			generatePermutations(index + 1, new_results);
 		}
 	}
-
-	
 	
 	public static void main(String[] args) {
 		System.out.println("Enter the string for checking");
@@ -119,6 +116,4 @@ public class PalindromicPermutations {
 		Generate(input);
 		sc.close();
 	}
-	
-	
 }

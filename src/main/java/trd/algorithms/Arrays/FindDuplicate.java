@@ -43,10 +43,34 @@ public class FindDuplicate {
 		return -1;
 	}
 	
+	// Imagine that the array is a function where:
+	//	A[i] is the range of i
+	//	There is a cycle if A[A[i]] = A[i] (same as before, but we do not have to swap)
+	// 	Consider the function implemented as a DAG
+	//  First we move one pointer by x and another by 2x and make them meet
+	//	Then  we move in lock 
+	public static Integer FindByFloyd(Integer[] A, ISwapper<Integer> swapper) {
+		int i = A.length - 1, j = A.length - 1;		
+		do {
+			i = A[i]; j = A[A[j]];
+		} while (i != j);
+		
+		j = A.length - 1;
+		do {
+			i = A[i]; j = A[j];
+		} while (i != j);
+		return i;
+	}
+	
 	public static void main(String[] args) {
 		Integer[] A = new Integer[] { 1, 3, 2, 0, 5, 3 };
 		System.out.printf("Array:%s Duplicate: %d\n", 
 							ArrayPrint.ArrayToString("", A),
 							FindDuplicate.Find(A, new Swapper.SwapperImpl<Integer>()));
+		
+		A = new Integer[] { 1, 3, 2, 0, 5, 3 };
+		System.out.printf("Array:%s Duplicate: %d\n", 
+							ArrayPrint.ArrayToString("", A),
+							FindDuplicate.FindByFloyd(A, new Swapper.SwapperImpl<Integer>()));
 	}
 }

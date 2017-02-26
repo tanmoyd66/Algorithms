@@ -11,6 +11,7 @@ public class SudokuSolver {
 			System.out.println("NONE");
 	}
 
+	
 	static boolean solve(int i, int j, int[][] cells) {
 		if (i == 9) {
 			i = 0;
@@ -29,21 +30,28 @@ public class SudokuSolver {
 					return true;
 			}
 		}
+		
 		// reset on backtrack
 		cells[i][j] = 0;
 		return false;
 	}
 
+	// check if val is legal for position i,j
 	static boolean legal(int i, int j, int val, int[][] cells) {
-		// row
+		
+		// check all rows for column j. val cannot appear there 
 		for (int k = 0; k < 9; ++k)
 			if (val == cells[k][j])
 				return false;
-		// col
+		
+		// check all columns for row i. val cannot appear there
 		for (int k = 0; k < 9; ++k) 
 			if (val == cells[i][k])
 				return false;
 
+		// Val cannot appear in the 3 X 3 box containing [i,j]
+		// boxRowOffset and boxColOffset indicate the start row & col for 
+		// bounding box
 		int boxRowOffset = (i / 3) * 3;
 		int boxColOffset = (j / 3) * 3;
 		for (int k = 0; k < 3; ++k) // box

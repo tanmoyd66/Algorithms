@@ -1,4 +1,6 @@
 package trd.algorithms.sorting;
+import java.util.function.BiFunction;
+
 import trd.algorithms.datastructures.HeapOnArray;
 import trd.algorithms.datastructures.HeapOnArray.HeapType;
 import trd.algorithms.utilities.ArrayPrint;
@@ -236,6 +238,17 @@ public class Sorting {
 		return retVal;
 	}
 
+	// Find the Median
+	public static <T extends Comparable<T>> T FindMedian(T[] A, BiFunction<T,T,T> medianer) {
+		if (A.length % 2 == 0) {
+			T mid1 = KthLargest_DPP(A, A.length/2,     0, A.length - 1, new Swapper.SwapperImpl<T>());
+			T mid2 = KthLargest_DPP(A, A.length/2 + 1, 0, A.length - 1, new Swapper.SwapperImpl<T>());
+			return medianer.apply(mid1, mid2);
+		} else {
+			return KthLargest_DPP(A, A.length/2, 0, A.length - 1, new Swapper.SwapperImpl<T>());
+		}
+	}
+
 	public static void main(String[] args) {
 		
 		Swapper.SwapperImpl<Integer> swapper = new Swapper.SwapperImpl<Integer>();
@@ -245,6 +258,8 @@ public class Sorting {
 
 		A = new Integer[] { 8, 12, 9, 7, 22, 3, 26, 14, 11, 15, 22, 6}; 		
 		KthLargest_DPP(A, 5, 0, A.length - 1, swapper);
+		Integer median = FindMedian(A, (a, b)-> (a + b)/2);
+		System.out.printf("Median is %s\n", median);
 		
 		HeapSort(new Integer[] { 8, 12, 9, 7, 22, 3, 26, 14, 11, 15, 22, 6});
 		SelectionSort(new Integer[] { 8, 12, 9, 7, 22, 3, 26, 14, 11, 15, 22, 6});		
