@@ -1,6 +1,8 @@
 package trd.algorithms.concurrency;
 
 import java.security.InvalidParameterException;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -28,7 +30,7 @@ public class ReadersWritersCondition implements ILocker {
 			if (numReadWrite > 0) {
 				numReadWrite--;
 				if (numReadWrite == 0)
-				cond.signal();
+					cond.signal();
 			}
 		} finally {
 			lock.unlock();

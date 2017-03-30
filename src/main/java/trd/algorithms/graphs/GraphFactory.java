@@ -113,6 +113,18 @@ public class GraphFactory {
 		return graph1;
 	}
 
+	public static Graph<String> getArticulationVertexTestGraph() {
+		Graph<String> graph1 = new Graph<String>("ArticulationVertexTestGraph", Mode.Undirected);
+		graph1.addEdge("a", "b");
+		graph1.addEdge("a", "c");
+		graph1.addEdge("b", "d");
+		graph1.addEdge("c", "d");
+		graph1.addEdge("d", "e");
+		graph1.addEdge("e", "f");
+		graph1.addEdge("f", "d");
+		return graph1;
+	}
+	
 	public static Graph<String> getCLRNetworkFlowGraph2() {
 		Graph<String> graph1 = new Graph<String>("CLRNetworkFlowGraph2");
 		graph1.addEdge("s", "u", 100.0);

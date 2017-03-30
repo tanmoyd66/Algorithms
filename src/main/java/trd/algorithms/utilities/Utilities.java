@@ -36,6 +36,20 @@ public class Utilities {
 		return ret;
 	}
 
+	public static String CharacterArrayToString(Character[] A) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < A.length; i++)
+			sb.append((char)A[i]);
+		return sb.toString();
+	}
+
+	public static String CharacterListToString(List<Character> A) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < A.size(); i++)
+			sb.append((char)A.get(i));
+		return sb.toString();
+	}
+	
 	public static void Verbose(boolean fPrint, String format, Object...args) {
 		if (fPrint)
 			System.out.printf(format, args);
@@ -59,5 +73,18 @@ public class Utilities {
 		for (T t : listT)
 			ret.add(t);
 		return ret;
+	}
+	
+	public static String BreakInParts(String s, int size) {
+		StringBuilder sb = new StringBuilder();
+		int nextAt = (s.length() - 1) % size;
+		for (int i = 0; i < s.length(); i++) {
+			sb.append(s.charAt(i));
+			if (i == nextAt) {
+				sb.append(" ");
+				nextAt += size;
+			}
+		}
+		return sb.toString();
 	}
 }

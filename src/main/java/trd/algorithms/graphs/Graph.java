@@ -468,7 +468,8 @@ public class Graph<T extends Comparable<T>> {
 		}
 	}	
 	
-	public void DepthFirstSearch(Function<AlgoSpecificNode<T>, DFSCallbackReturnTypes> exploreNode, Function<AlgoSpecificNode<T>, DFSCallbackReturnTypes> processNode) {
+	public void DepthFirstSearch(Function<AlgoSpecificNode<T>, DFSCallbackReturnTypes> exploreNode, 
+								 Function<AlgoSpecificNode<T>, DFSCallbackReturnTypes> processNode) {
 		System.out.printf("DFS on [%s]:", name);
 				
 		Map<Integer,AlgoSpecificNode<T>> nodeMap = InitializeVertexMap(1, 0.0, 0.0);
@@ -575,7 +576,81 @@ public class Graph<T extends Comparable<T>> {
 		Utilities.Verbose(fPrint, "TopSort on [%s]:%s\n", name, sll);
 		return sll;
 	}
+
+	// Articulation Vertices: 
+	// A vertex is an articulation vertex if removing it disconnects the graph
+	// 2 conditions have to be met for v to be an articulation vertex
+	// (1) if v is the root, it has to have 2 children
+	// (2) there cannot be an edge from a child of v to a parent of v
+	public static class AVInfo {
+		int low = 0;
+		public String toString() { return Integer.toString(low); }
+	}
 	
+	public void ArticulationVerticesHelper(Map<Integer,AlgoSpecificNode<T>> nodeMap,
+										   AlgoSpecificNode<T> node, 
+										   Set<Integer> avs,
+										   AtomicInteger disc) {
+		AVInfo avInfoNode = (AVInfo)node.node.garnish;
+		node.color = Color.gray;
+		node.label = disc.incrementAndGet();
+		avInfoNode.low = node.label;
+		int children = 0;
+		for (Edge<T> e : this.getEdgesByVertexId(node.node.node)) {
+			AlgoSpecificNode<T> target = nodeMap.get(e.target);
+			
+			if (target.color == Color.white) {
+				
+				// Not a back edge. Go forward depth first recursively
+				children++;
+				target.parent = node;
+				ArticulationVerticesHelper(nodeMap, target, avs, disc);
+				
+				// Set the low values for the node and the child node
+				AVInfo avInfoTarget = (AVInfo)target.node.garnish;
+				avInfoNode.low = Math.min(avInfoNode.low, avInfoTarget.low);
+				
+				// 2 Cases for Articulation Point.
+				// Case 1: node is the root node and has 2 or more children
+				if (node.parent == null && children > 1)
+					avs.add(node.node.node);
+				
+				// Case 2: the low value of one of its child is greater than the disc value
+				if (node.parent != null && avInfoTarget.low >= node.label)
+					avs.add(node.node.node);
+			} else if (target != node.parent){
+				avInfoNode.low = Math.min(avInfoNode.low, target.label);
+			}
+		}
+	}
+	
+	public Set<T> ArticulationVertices() {
+		
+		// We need access to the NodeMap - so we will use it from outside
+		Map<Integer,AlgoSpecificNode<T>> nodeMap = InitializeVertexMap(1, 0.0, 0.0);
+		Set<Integer> articulationVertices = new HashSet<Integer>();
+		AtomicInteger disc = new AtomicInteger(0);
+		
+		// Create the garnish object to make the code cleaner
+		for (AlgoSpecificNode<T> node: nodeMap.values())
+			node.node.garnish = new AVInfo();
+		
+		// Do a recursive DFS
+		for (Integer v : getVertexSet()) {
+			AlgoSpecificNode<T> node = nodeMap.get(v);
+			if (node.color == Color.white)
+				ArticulationVerticesHelper(nodeMap, node, articulationVertices, disc);
+		}
+		
+		// Convert from Ids to Labels and return result
+		Set<T> ret = new HashSet<T>();
+		for (Integer v : articulationVertices)
+			ret.add(getVertexById(v));
+		return ret;
+	}
+	
+	
+
 	// Breadth first search of general graphs
 	public void BreadthFirstSearch(Consumer<AlgoSpecificNode<T>> processNode) {
 		int time  = 1;
@@ -714,6 +789,8 @@ public class Graph<T extends Comparable<T>> {
 		return edges;
 	}
 
+	
+	// Find an Euler Path in a Graph
 	private Integer getNonIsolatedVertex() {
 		for (Integer vertex : getVertexSet()) {
 			if (getEdgesByVertexId(vertex).size() > 0)
@@ -793,5 +870,13 @@ public class Graph<T extends Comparable<T>> {
 			System.out.println(graph4);
 			graph4.EulerPath(null);
 		}
+		
+		if (true) {
+			Graph<String> graph4 = GraphFactory.getArticulationVertexTestGraph();
+			System.out.println(graph4);
+			Set<String> avs = graph4.ArticulationVertices();
+			System.out.printf("%s\n", avs);
+		}
+
 	}
 }

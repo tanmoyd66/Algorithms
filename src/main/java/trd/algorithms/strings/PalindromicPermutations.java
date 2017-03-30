@@ -1,119 +1,83 @@
 package trd.algorithms.strings;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Scanner;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import trd.algorithms.Arrays.Permutations;
+import trd.algorithms.utilities.Swapper;
+import trd.algorithms.utilities.Utilities;
 
 public class PalindromicPermutations {
-	private static HashMap<String, Integer> unique_permutations = new HashMap<>();
-	private static String unique_chars = "";
-
 	
-	private static boolean isPalindromePossible(String input) {
-		int[] map = new int[128];
-		boolean even = (0 == input.length() % 2);
-
-		// update count of each character assuming ASCII
-		for (int i = 0; i < input.length(); i++) {
-			map[input.charAt(i)]++;
+	// check if a string can have a palindromic permutation
+	// Strategy: There can be at most 1 character that has an odd count 
+	public static Character CheckIfPalindromizable(String s,
+								Map<Character, Integer> charMap) {
+		for (char c : s.toCharArray()) {
+			Integer cCount = charMap.get(c);
+			cCount = cCount == null ? 1 : (cCount + 1);
+			charMap.put(c, cCount);
 		}
-
-		// go thru each character
-		// for even length string the count of each character has to be a multiple of 2
-		// for odd length string the count of each character can't be a multiple of 2
-		for (int i = 0; i < input.length(); i++) {
-			char c = input.charAt(i);
-			if (map[c] > 0) {
-				if (even && map[c] % 2 != 0) {
-					return false;
-				} else if (!even && map[c] % 2 != 0) {
-					even = true;
-				}
+		Character oddChar = null;
+		for (Map.Entry<Character, Integer> me : charMap.entrySet()) {
+			if (me.getValue() % 2 == 1) {
+				if (oddChar != null && s.length() %2 == 0)
+					return null;
+				else 
+					oddChar = me.getKey();
 			}
 		}
-		return true;
+		return oddChar;
 	}
-
-	public static void Generate(String input) {
+	
+	// Generate all permutations
+	public static Set<String> GeneratePermutations(String s) {
+		Map<Character, Integer> charMap = new HashMap<Character, Integer>();
+		Set<String> ret = new HashSet<String>();
 		
-		// Check if palindromic permutations are at all possible
-		if (isPalindromePossible(input)) {
-
-			// Collect all unique characters into a string
-			HashMap<Character, Integer> char_map = new HashMap<>();
-			for (int i = 0; i < input.length(); i++) {
-				char c = input.charAt(i);
-				if (!char_map.containsKey(c)) {
-					char_map.put(c, 1);
-				} else {
-					unique_chars += input.substring(i, i + 1);
-					char_map.remove(c);
-				}
+		// Step 1: Check if the String is palindromizable
+		Character oddChar = CheckIfPalindromizable(s, charMap);		
+		if (s.length() % 2 == 1 && oddChar == null ||
+			s.length() % 2 == 0 && oddChar != null) 
+			return ret;
+		charMap.remove(oddChar);
+		
+		// Step 2: Find the characters that will make the string
+		String charSet = "";
+		for (Map.Entry<Character, Integer> me : charMap.entrySet()) {
+			int count = me.getValue();
+			if (count %2 == 0) {
+				for (int j = 0; j < count / 2; j++)
+					charSet += me.getKey().toString();
 			}
-
-			// Generate permutations recursively
-			generatePermutations(0, new ArrayList<StringBuilder>());
-			
-			for (Character c : char_map.keySet()) {
-				unique_chars = c.toString();
-			}
-
-			if (char_map.size() > 0) {
-				for (String key : unique_permutations.keySet()) {
-					System.out.println(key + unique_chars + new StringBuilder(key).reverse().toString());
-				}
-			} else {
-				for (String key : unique_permutations.keySet()) {
-					System.out.println(key + new StringBuilder(key).reverse().toString());
-				}
-			}
-
-		} else {
-			System.out.println("No palindromic permutations possible");
 		}
+		
+		// Step 3: Generate Permutations of the characters
+		List<List<Character>> permList = new ArrayList<List<Character>>();
+		Permutations.getPermutations(Utilities.StringToCharacterArray(charSet), 0, permList, 
+								new Swapper.SwapperImpl<Character>());
 
-	}
-
-	private static void generatePermutations(int index, ArrayList<StringBuilder> results) {
-		if (index == 0) {
-			// Base case of recursion
-			// unique_chars stores the characters that have > 1 occurrences
-			if (unique_chars.length() > 1) {
-				
-				// Recurse on the rest of the  
-				results.add(new StringBuilder(unique_chars.substring(0, 1)));
-				generatePermutations(index + 1, results);
-			} else {
-				unique_permutations.put(unique_chars.substring(0, 1), 1);
-				return;
-			}
-		} else {
-			ArrayList<StringBuilder> new_results = new ArrayList<>();
-			for (StringBuilder result : results) {
-				for (int i = 0; i <= result.length(); i++) {
-					StringBuilder temp_result = new StringBuilder(result);
-					new_results.add(temp_result.insert(i, unique_chars.charAt(index)));
-				}
-			}
-
-			if (index == unique_chars.length() - 1) {
-				for (StringBuilder result : new_results) {
-					String str_result = result.toString();
-					if (!unique_permutations.containsKey(str_result)) {
-						unique_permutations.put(str_result, 1);
-					}
-				}
-				return;
-			}
-			generatePermutations(index + 1, new_results);
+		// Step 4: Generate the permuted strings
+		for (List<Character> aPerm: permList) {
+			StringBuilder sb = new StringBuilder();
+			String thisPermPrefix = Utilities.CharacterListToString(aPerm);
+			sb.append(thisPermPrefix);
+			sb.append(oddChar == null ? "" : oddChar);
+			Collections.reverse(aPerm);
+			String thisPermSuffix = Utilities.CharacterListToString(aPerm);
+			sb.append(thisPermSuffix);
+			ret.add(sb.toString());
 		}
+		return ret;
 	}
 	
 	public static void main(String[] args) {
-		System.out.println("Enter the string for checking");
-		Scanner sc = new Scanner(System.in);
-		String input = sc.next();
-		Generate(input);
-		sc.close();
+		String s = "abab";
+		System.out.printf("%s\n", GeneratePermutations(s));
 	}
 }

@@ -48,7 +48,7 @@ public class LargestRectangleInHistogram {
 	}
 
 	public static void main(String[] args) {
-		Integer[] A = new Integer[] { 1, 2, 3, 2 };
+		Integer[] A = new Integer[] { 1, 2, 7, 2 };
 		Find(A);
 	}
 }

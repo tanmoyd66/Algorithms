@@ -124,6 +124,12 @@ public class BitOperations {
 		return BitsSet(diff);
 	}
 	
+	public static int max(int a, int b) {
+		int c = a - b;
+		int k = c >> 31 & 0x1;
+		return a - k * c;
+	}
+
 	public static void main(String[] args) {
 		System.out.printf("Twos Complement of %d(%s) is: %d(%s)\n", 3, Integer.toBinaryString(3), TwosComplement(3), Integer.toBinaryString(3));
 
@@ -149,6 +155,12 @@ public class BitOperations {
 									from, Integer.toBinaryString(from),
 									to, Integer.toBinaryString(to),
 									NumberOfBitsToConvert(from, to));
+		}
+		
+		if (true) {
+			int a = 10, b = 13;
+			System.out.printf("Max of %d and %d is %d\n", a, b, max(a, b));
+			
 		}
 	}
 }
