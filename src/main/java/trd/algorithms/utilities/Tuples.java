@@ -28,6 +28,9 @@ public class Tuples {
 		public Triple(S e1, T e2, U e3) {
 			this.e1 = e1; this.e2 = e2; this.e3 = e3;
 		}
+		public String toString() {
+			return String.format("(%s:%s:%s)", e1, e2, e3);
+		}
 	}
 	
 	public static char[] CharacterArrayToCharArray(Character[] input) {

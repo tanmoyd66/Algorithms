@@ -82,7 +82,8 @@ public class SuffixesAndPrefixes {
 		}
 
 		if (true) {
-			String s1 = "aacaagtttacaagc";
+//			String s1 = "aacaagtttacaagc";
+			String s1 = "abcbcd";
 			System.out.printf("Largest Repeated Substring of [%s] is [%s]\n", s1, LongestRepeatedSubstring(s1));
 		}
 		

@@ -81,11 +81,11 @@ public class CoinChanging {
 	}
 	
 	public static void main(String[] args) {
-//		for (int i = 51; i < 100; i++) {
-//			System.out.printf("Number of ways to make: %3d is %3d/%3d\n", i, CountWays_Recursive(i, 0), CountWays_BottomUpDP(i, 0));
-//		}
+		for (int i = 51; i < 100; i++) {
+			System.out.printf("Number of ways to make: %3d is %3d/%3d\n", i, CountWays_Recursive(i, 0), CountWays_BottomUpDP(i, 0));
+		}
 		
-		for (int i = 1; i < 100; i++) {
+		for (int i = 56; i < 57; i++) {
 			System.out.printf("Minimal Number of coins to make: %3d is %s\n", i, 
 						ArrayPrint.ArrayToString("", new CoinChanging().MinimalCoins(i)));
 		}

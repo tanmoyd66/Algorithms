@@ -93,23 +93,19 @@ public class SubArrays {
 	// Maximal sum sub-array
 	public static void MaximalSumSubArray(Integer[] A) {		
 		Tuples.Triple<Integer, Integer, Integer> last = new Tuples.Triple<Integer, Integer, Integer>(Integer.MIN_VALUE, 0, 0); 
-		int start = Integer.MIN_VALUE, end = 0, sum = 0;
-		while (end < A.length) {
-			if (A[end] < 0) {
-				if (sum > last.e1) {
-					last.e1 = sum; last.e2 = start; last.e3 = end - 1;
-				}
-				sum = 0;
-				end++;
-				start = end; 
-			} else {
-				sum += A[end++];
+		int run_start = 0, run_end = 0, max_so_far = 0, max_ending_here = 0;
+		for (int i = 0; i < A.length; i++) {
+			max_ending_here += A[i];
+			if (max_ending_here < 0) {
+				max_ending_here = 0;
+				run_start = run_end = i + 1;
+			}
+			if (max_so_far < max_ending_here) {
+				max_so_far = max_ending_here;
+				run_end = i; 
 			}
 		}
-		if (sum > last.e1) {
-			last.e1 = sum; last.e2 = start; last.e3 = end - 1;
-		}
-		System.out.printf("%s: %d:[%d-%d]\n", ArrayPrint.ArrayToString("Max Sum Sub Array:", A), last.e1, last.e2, last.e3);
+		System.out.printf("%s: %d:[%d-%d]\n", ArrayPrint.ArrayToString("Max Sum Sub Array:", A), max_so_far, run_start, run_end);
 	}
 
 	// Maximal sum sub-array
@@ -139,7 +135,7 @@ public class SubArrays {
 		if (true) {
 			FindMaxDifference_BruteForce(new Integer[] {-10, 11, -8, 8, 6, 12, -11, 30});
 			FindMaxDifference_DivideAndConquer(new Integer[] {-10, 11, -8, 8, 6, 12, -11, 30});
-			MaximalSumSubArray(new Integer[] {-10, 11, -8, 8, 6, 12, -11, 23});
+			MaximalSumSubArray(new Integer[] {-2, -3, 4, -1, -2, 1, 5, -3});
 			LongestIncreasingSubArray(new Integer[] {-10, 11, -8, 8, 6, 12, -11, 23});
 		}
 	}

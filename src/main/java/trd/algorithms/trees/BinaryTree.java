@@ -827,6 +827,29 @@ public class BinaryTree<T extends Comparable<T>> {
 		}
 	}
 
+	// Find Height from a pre-order traversal
+	public static <T extends Comparable<T>> int FindHeightFromPreOrder(T[] A, int low, int high, int height) {
+
+		// Base cases
+		if (A.length == 0 || low > high)
+			return height;
+		else if (low == high || low == high - 1) {
+			return height;
+		} else {
+			
+			int j = low + 1;
+			
+			// increasing sequences always result in internal nodes 
+			while (j <= high && A[j].compareTo(A[low]) < 0)
+				j++;
+			
+			// recurse
+			int leftHeight  = FindHeightFromPreOrder(A, low + 1, j - 1, height + 1);
+			int rightHeight = FindHeightFromPreOrder(A, j, high, height + 1);
+			return Math.max(leftHeight, rightHeight);
+		}
+	}
+
 	// Find First Non-matching leaves in 2 pre-order traversals
 	public static <T extends Comparable<T>> T FindFirstNonMatchingLeaves(T[] A, T[] B) {
 		
@@ -908,7 +931,202 @@ public class BinaryTree<T extends Comparable<T>> {
 			System.out.println();
 		}
 	}
+
+	// Traverse the periphery of a tree
+	// Algorithm 1:
+	//		(1) Traverse Pre-Order (Left Child) to the first leaf node
+	//		(2) Traverse In-Order and print all nodes that do not have a left and right child
+	//		(3) Traverse Pre-Order (Right Child)
+	// 		O(n) + 2Log(n)
+	// Algorithm 2:
+	//		Make a Stack Based Traversal
+	//		Change modes from Pre, In, Post based on one of the above criterion
+	public void GetLeaves(Node<T> node, List<T> context) {
+		if (node == null)
+			return;
+		if (node.left == null && node.right == null) {
+			context.add(node.value);
+			return;
+		}
+		if (node.left != null)
+			GetLeaves(node.left, context);
+		if (node.right != null)
+			GetLeaves(node.right, context);
+	}
+	public void GetLeftBoundary(Node<T> node, List<T> context) {
+		if (node == null)
+			return;
+		if (node.left != null) {
+			context.add(node.value);
+			GetLeftBoundary(node.left, context);
+		} else if (node.right != null) {
+			context.add(node.value);
+			GetLeftBoundary(node.right, context);
+		}
+	}
+	public void GetRightBoundary(Node<T> node, List<T> context) {
+		if (node == null)
+			return;
+		if (node.right != null) {
+			GetRightBoundary(node.right, context);
+			context.add(node.value);
+		} else if (node.left != null) {
+			GetRightBoundary(node.left, context);
+			context.add(node.value);
+		}
+	}
+	public List<T> PeripheryTraversal() {
+		List<T> ret = new ArrayList<T>();
+		GetLeftBoundary(root, ret);
+		GetLeaves(root, ret);
+		if (root.right != null)
+			GetRightBoundary(root.right, ret);
+		return ret;
+	}
 	
+	public enum TraversalMode 	{PreOrder, InOrder, PostOrder};
+	public enum NodeColor 		{White, Gray, Black};
+	public boolean IsAllRight(Stack<Tuples.Triple<Node<T>,NodeColor, Boolean>> stack) {
+		boolean ret = true;
+		for (int i = 0; ret && i < stack.size(); i++)
+			ret &= stack.elementAt(i).e3;
+		return ret;
+	}
+	public List<T> PeripheryTraversal_SBT() {
+		List<T> ret = new ArrayList<T>();
+		Stack<Tuples.Triple<Node<T>,NodeColor, Boolean>> stack = 
+							new Stack<Tuples.Triple<Node<T>,NodeColor, Boolean>>();
+		stack.push(new Tuples.Triple<Node<T>,NodeColor, Boolean>(root, NodeColor.White, root.right == null));
+		
+		TraversalMode tm = TraversalMode.PreOrder;
+		while (!stack.isEmpty()) {
+			Tuples.Triple<Node<T>,NodeColor, Boolean> stackTop = stack.peek();
+			Node<T> curr = stackTop.e1;
+
+			// Print if we are in pre-order mode
+			if (tm == TraversalMode.PreOrder)
+				ret.add(curr.value);
+				
+			// Do stack based traversal
+			if (stackTop.e2 == NodeColor.White) {
+				
+				// Explore new node
+				if (curr.left != null) {
+					stack.push(new Tuples.Triple<Node<T>,NodeColor, Boolean>(curr.left, 
+									NodeColor.White, curr.right == null));
+				} else {
+					// Switch to in-order traversal after you hit the first leaf
+					tm = TraversalMode.InOrder;
+				}
+				// Mark Node as being explored (right not seen yet)
+				stackTop.e2 = NodeColor.Gray;
+			} else if (stackTop.e2 == NodeColor.Gray) {
+				
+				// Traverse the node and take action to print based on what the traversal mode is
+				if (curr.left == null && curr.right == null || tm == TraversalMode.PostOrder)
+					ret.add(curr.value);
+
+				// We are going to traverse the right
+				if (curr.right != null) {
+					stack.push(new Tuples.Triple<Node<T>,NodeColor, Boolean>(curr.right, NodeColor.White, true));
+					stackTop.e2 = NodeColor.Black;
+				}
+				
+				// Done exploring this node
+				stackTop.e2 = NodeColor.Black;
+				stackTop.e3 = true;
+			} else {
+				// Check if all the parents are right-most (not just right) child only
+				// Switch traveral mode if so
+				if (IsAllRight(stack))
+					tm = TraversalMode.PostOrder;
+				stack.pop();
+			}
+		}
+		return ret;
+	}
+
+	// Find the Diameter of a tree
+	// Diameter: Longest Distance between any two leaves
+	// Algorithm:
+	//		(1) For every node get the left and right child depths
+	//		(2) The diameter is left depth + right depth - 2 * self depth
+	//		(3) Simultaneously find the maximal diameter
+	public static class DiameterInfo {
+		int depth, diameter;
+		public DiameterInfo(int depth, int diameter) {
+			this.depth = depth; this.diameter = diameter;
+		}
+		public String toString() {
+			return String.format("(%d,%d)", depth, diameter);
+		}
+	}
+	DiameterInfo maxTillNow = new DiameterInfo(0, -1);
+	public DiameterInfo Diameter(Node<T> node, int depth) {
+		
+		if (node == null) {
+			return new DiameterInfo(depth - 1, 0);
+		}
+		
+		// Recursively find the diameters of the left and right subtrees
+		DiameterInfo diLeft  = Diameter(node.left,  depth + 1);
+		DiameterInfo diRight = Diameter(node.right, depth + 1);
+		
+		// Calculate the diameter of this guy
+		DiameterInfo diThis  = new DiameterInfo(Math.max(diLeft.depth, diRight.depth), 
+												diLeft.depth + diRight.depth - 2 * depth);
+	
+		// Find which one has the maximal diameter
+		DiameterInfo[] diaArray = new DiameterInfo[] { diThis, diLeft, diRight };
+		int maxIdx = 0;
+		for (int i = 1; i < diaArray.length; i++) {
+			if (diaArray[i].diameter > diaArray[maxIdx].diameter)
+				maxIdx = i;
+		}
+		System.out.printf("%s:%s\n", node, diaArray[maxIdx]);
+		if (diaArray[maxIdx].diameter > maxTillNow.diameter)
+			maxTillNow = diaArray[maxIdx];
+		
+		// Return the 
+		return diaArray[maxIdx];
+	}
+	public int Diameter() {
+		DiameterInfo di = Diameter(root, 0);
+		return maxTillNow.diameter;
+	}
+
+	// Distance between 2 nodes in the tree
+	public static class DistanceInfo {
+		int depth, distance;
+		public DistanceInfo(int depth, int diameter) {
+			this.depth = depth; this.distance = diameter;
+		}
+		public String toString() {
+			return String.format("(%d,%d)", depth, distance);
+		}
+	}
+	public DistanceInfo DistanceBetweenNodes(Node<T> node, int depth, T v1, T v2) {
+		if (node == null)
+			return new DistanceInfo(depth - 1, -1);
+		if (node.value.compareTo(v1) == 0 || node.value.compareTo(v2) == 0)
+			return new DistanceInfo(depth, 0);
+		
+		DistanceInfo lDist = DistanceBetweenNodes(node.left,  depth + 1, v1, v2);
+		DistanceInfo rDist = DistanceBetweenNodes(node.right, depth + 1, v1, v2);
+		
+		if (lDist.distance > 0)
+			return lDist;
+		else if (rDist.distance > 0)
+			return rDist;
+		else if (lDist.distance == 0 && rDist.distance == 0)
+			return new DistanceInfo(Math.max(lDist.depth, rDist.depth), lDist.depth + rDist.depth);
+		else if (lDist.distance == 0)
+			return lDist; 
+		else if (rDist.distance == 0)
+			return rDist;
+		else 
+			return new DistanceInfo(depth, -1);
+	}
 	
 	public static void main(String[] args) {
 		BinaryTree<Integer> tree1 = new BinaryTree<Integer>(
@@ -1042,6 +1260,8 @@ public class BinaryTree<T extends Comparable<T>> {
 			Integer[] A  = new Integer[] { 11, 8, 3, 2, 4, 9, 17, 13, 23, 19 };
 			List<Integer> leavesA = new ArrayList<Integer>();
 			FindLeafNodes(A, 0, A.length - 1, leavesA);
+			int height = FindHeightFromPreOrder(A, 0, A.length - 1, 0);
+			System.out.printf("%d\n", height);
 		}
 
 		if (true) {
@@ -1051,5 +1271,25 @@ public class BinaryTree<T extends Comparable<T>> {
 			System.out.printf("%s, %s: %s\n", 
 						ArrayPrint.ArrayToString("A", A), ArrayPrint.ArrayToString("B", B), leaf);
 		}
+
+		if (true) {
+			BinaryTree<Integer> tree9 = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });
+			//BinaryTree<Integer> tree9 = new BinaryTree<Integer>("[[[[4[5]]3]2[6]]1[[7]8]]", (String s)-> { return Integer.parseInt(s); });
+			List<Integer> periphery1 = tree9.PeripheryTraversal_SBT();
+			List<Integer> periphery2 = tree9.PeripheryTraversal();
+			System.out.printf("%s %s\n", periphery1, periphery2);
+		}
+		
+		if (true) {
+			BinaryTree<Integer> tree10 = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });
+			System.out.printf("%s\n", tree10.Diameter());
+		}
+		
+		if (true) {
+			BinaryTree<Integer> tree11 = new BinaryTree<Integer>("[[[[2]3[4]]8[9]]11[[13]17[[19]23]]]", (String s)-> { return Integer.parseInt(s); });
+			DistanceInfo di = tree11.DistanceBetweenNodes(tree11.root, 0, 2, 19);
+			System.out.printf("%s\n", di.distance);
+		}
+
 	}
 }

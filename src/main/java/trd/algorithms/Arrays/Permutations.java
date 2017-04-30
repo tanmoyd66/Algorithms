@@ -32,7 +32,7 @@ public class Permutations<T extends Comparable<T>> {
 	public static void main(String[] args) {
 		Permutations<Integer> perm = new Permutations<>();
 		List<List<Integer>> perms = new ArrayList<List<Integer>>();
-		getPermutations(new Integer[] {1, 2, 3, 4, 5, 6}, 0, perms, new Swapper.SwapperImpl<Integer>());
+		getPermutations(new Integer[] {1, 2, 3}, 0, perms, new Swapper.SwapperImpl<Integer>());
 		System.out.printf("Got %d permutations:\n", perms.size());
 		for (List<Integer> l : perms)
 			System.out.printf("%s\n", l);

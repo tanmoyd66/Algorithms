@@ -1,10 +1,5 @@
 package trd.algorithms.strings;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 public class AssortedStringProblems {
 	public static String getShortestPalindrome(String str) {
 		StringBuilder builder = new StringBuilder(str).reverse();
@@ -25,9 +20,8 @@ public class AssortedStringProblems {
 
 	public static void main(String[] args) {
 		if (true) {
-			String s = "abab";
+			String s = "abc";
 			System.out.printf("%s: %s\n", s, getShortestPalindrome(s));
 		}
 	}
-
 }

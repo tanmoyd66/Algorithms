@@ -16,6 +16,16 @@ public class  SinglyLinkedList<T extends Comparable<T>>  {
 		public String toString() {
 			return value.toString();
 		}
+		public String toClosure() {
+			Node<T> curr = this;
+			StringBuilder sb = new StringBuilder();
+			do {
+				sb.append(curr.value.toString());
+				sb.append("->");
+				curr = curr.next;
+			} while (curr != null);
+			return sb.toString();
+		}
 	}
 	
 	Node<T>  head, tail;
@@ -363,9 +373,52 @@ public class  SinglyLinkedList<T extends Comparable<T>>  {
 		merge(right);		
 	}
 	
+	public int countCommon(Node<T> a, Node<T> b) {
+	    int count = 0;
+	 
+	    // loop to count common in the list starting from node a and b
+	    for (; a != null && b != null; a = a.next, b = b.next)
+	        // increment the count for same values
+	        if (a.value.compareTo(b.value) == 0)
+	            ++count;
+	        else
+	            break;
+	    return count;
+	}
+
+	public int maxPalindrome() {
+	    int result = 0;
+	    Node<T> prev = null, curr = head;
+	 
+	    // loop till the end of the linked list
+	    while (curr != null) {
+	        // The sublist from head to current reversed.
+	        Node<T> next = curr.next;
+	        curr.next = prev;
+	 
+	        // check for odd length palindrome by finding longest common list elements
+	        // beginning from prev and from next (We exclude curr)
+	        result = Math.max(result, 2 * countCommon(prev, next) + 1);
+	 
+	        // check for even length palindrome by finding longest common list elements
+	        // beginning from curr and from next
+	        result = Math.max(result, 2 * countCommon(curr, next));
+	 
+	        // update prev and curr for next iteration
+	        prev = curr;
+	        curr = next;
+	    }
+	    return result;
+	}
+
 	public static void main(String[] args) {
 		SinglyLinkedList<Integer> linkedList = new SinglyLinkedList<Integer>();
 
+		// Test Iterative Reversing
+		for (int i = 0; i < 10; i++)
+			linkedList.insertHead(i);
+		linkedList.iterativeReverse();
+		
 		// Test Swizzling
 		linkedList.truncate();
 		Random rand = new Random();
@@ -417,6 +470,19 @@ public class  SinglyLinkedList<T extends Comparable<T>>  {
 				yasll.insertTail(list[i]);
 			yasll.tail.next = yasll.head.next.next;
 			Node<Integer> loopStart = yasll.DetectLoop();
+		}
+		
+		// Finding Palindromes
+		if (true) {
+			Node<Integer> thead = new Node<>(2);
+			thead.next = new Node<>(4);
+			thead.next.next = new Node<>(3);
+			thead.next.next.next = new Node<>(4);
+			thead.next.next.next.next = new Node<>(2);
+			thead.next.next.next.next.next = new Node<>(15);
+			SinglyLinkedList<Integer> yasll = new SinglyLinkedList<Integer>();
+			yasll.head = thead;
+			int c = yasll.maxPalindrome();
 		}
 	}
 }
