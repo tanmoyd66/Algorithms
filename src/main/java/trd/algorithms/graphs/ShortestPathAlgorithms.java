@@ -117,7 +117,8 @@ public class ShortestPathAlgorithms<T extends Comparable<T>> {
 	private static Double DebuggableMaxDouble = 99999.99;
 	
 	// Shortest path using Dijkstra's algorithm
-	public List<Edge<T>> ShortestPath_Dijkstra(T start, T end, Function<Edge<T>, Boolean> qualifies, Function<Edge<T>, Double> getWeightOfEdge) {
+	public List<Edge<T>> ShortestPath_Dijkstra(T start, T end, Function<Edge<T>, Boolean> qualifies, 
+												Function<Edge<T>, Double> getWeightOfEdge) {
 
 		HashMap<Integer, AlgoSpecificNode<T>> nodeMap = graph.InitializeVertexMap(graph.getVertexId(start), DebuggableMaxDouble, 0.0);
 		

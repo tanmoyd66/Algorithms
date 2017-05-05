@@ -49,7 +49,7 @@ public class MobileNumberPad {
     }
     
     public static void main(String[] args) {
-    	Integer[] A = new Integer[] {1, 2, 3};
+    	Integer[] A = new Integer[] {4, 2, 5, 7, 6, 5, 3, 9, 2, 0};
     	System.out.printf("%s: %s\n", ArrayPrint.ArrayToString("", A), formWords(A, 0));
     }
 }

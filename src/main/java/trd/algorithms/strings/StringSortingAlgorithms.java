@@ -30,7 +30,7 @@ public class StringSortingAlgorithms {
 			for (int r = 0; r < radix; r++) 
 				count[r + 1] += count[r];
 	
-			// Distribute, using auxiliary array
+			// Distribute, using auxilia ry array
 			for (int i = 0; i < size; i++) 
 				aux[count[A[i].charAt(d)]++] = A[i];
 			

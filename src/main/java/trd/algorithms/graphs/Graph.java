@@ -119,13 +119,18 @@ public class Graph<T extends Comparable<T>> {
 		return ret;
 	}
 	
-	protected Integer getVertexId(T source) {
+	public Integer getVertexId(T source) {
 		Integer sourceId = vertexMap.get(source);
 		if (sourceId == null) {
 			sourceId = ++maxVertex;
 			vertexMap.put(source, sourceId);
 			invVertMap.put(sourceId, source);
 		}
+		return sourceId;
+	}
+
+	public Integer getVertexIdNoAllocate(T source) {
+		Integer sourceId = vertexMap.get(source);
 		return sourceId;
 	}
 	

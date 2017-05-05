@@ -18,7 +18,7 @@ public class MatrixRotate {
 	// Strategy:
 	//		We will do a layer at a time.
 	//		To rotate a N X N matrix we need N - 1 rotations of elements
-	//		(0,i)->(i,N-1)->(N-1,N-i-1)->(N-i-1,0)->(0,1)
+	//		(0,i)->(i,N-1)->(N-1,N-i-1)->(N-i-1,0)->(0,i)
 	//		We will have to offset the above dimensions by adding (N-i,N-i) to them
 	//			as the left point goes from (0,0)->(1,1)->(2,2) etc.
 	public static <T> void RotateRight(T[][] matrix) {

@@ -39,7 +39,7 @@ public class RecurringSequence {
 	}
 	
 	public static void main(String[] args) {
-		String ret = getRecurringSequence(50, 22);
+		String ret = getRecurringSequence(1, 9);
 		System.out.println(ret);
 	}
 }

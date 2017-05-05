@@ -3,6 +3,11 @@ package trd.algorithms.graphs;
 import trd.algorithms.graphs.Graph.Mode;
 
 public class GraphFactory {
+	public static <T extends Comparable<T>>  Graph<T> getEmptyGraph() {
+		Graph<T> graph1 = new Graph<T>("Empty", Mode.Directed);
+		return graph1;
+	}
+
 	public static Graph<String> getSimpleUGraph() {
 		Graph<String> graph1 = new Graph<String>("Simple", Mode.Undirected);
 		graph1.addEdge("a", "b");
