@@ -1128,6 +1128,28 @@ public class BinaryTree<T extends Comparable<T>> {
 			return new DistanceInfo(depth, -1);
 	}
 	
+	// Flip the binary tree (also called UpsideDown)
+    public Node<T> _flipBinaryTree(Node<T> root) 
+    { 
+        if (root == null)  
+            return root;  
+        if (root.left == null && root.right ==null)  
+            return root; 
+  
+        // recursively call the same method  
+        Node<T> flippedRoot = _flipBinaryTree(root.left); 
+  
+        // rearranging main root Node after returning  
+        // from recursive call  
+        root.left.left = root.right; 
+        root.left.right = root; 
+        root.left = root.right = null; 
+        return flippedRoot; 
+    } 
+    public Node<T> flipBinaryTree() {
+    	return _flipBinaryTree(root);
+    }
+    
 	public static void main(String[] args) {
 		BinaryTree<Integer> tree1 = new BinaryTree<Integer>(
 										new Node<Integer>(
@@ -1168,6 +1190,9 @@ public class BinaryTree<T extends Comparable<T>> {
 
 		// Column Order Traversal
 		tree3a.ColumnOrderTraversal();
+
+		// Flip the Binary Tree
+		tree3a.flipBinaryTree();
 		
 		// Find Successor
 		int nodeVal = 11; 

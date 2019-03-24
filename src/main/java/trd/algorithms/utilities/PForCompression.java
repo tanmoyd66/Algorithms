@@ -1,7 +1,6 @@
 package trd.algorithms.utilities;
 
-import me.lemire.integercompression.differential.*;
-
+import me.lemire.integercompression.*;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -10,6 +9,7 @@ import com.avast.jsnappy.SnappyCompressor;
 
 
 public class PForCompression {
+	/*
 	public static void PForCompress(int[] data) {
 		IntegratedIntCompressor iic = new IntegratedIntCompressor();
 		System.out.println("Compressing " + data.length + " integers using friendly interface");
@@ -19,6 +19,7 @@ public class PForCompression {
 		if (!Arrays.equals(recov, data))
 			throw new RuntimeException("bug");
 	}
+	*/
 	
 	public static void SnappyCompress(int[] data) {
 		System.out.println("Compressing " + data.length + " integers using friendly interface");
@@ -38,7 +39,7 @@ public class PForCompression {
 		int[] data = new int[2342351];
 		for (int k = 0; k < data.length; ++k)
 			data[k] = k;
-		PForCompress(data);
+		//PForCompress(data);
 		SnappyCompress(data);
 	}
 }

@@ -47,6 +47,5 @@ public class BreakIntoWords {
 	        	System.out.printf("Words in %s are: %s\n", s, ret);
 	        }
 		}
-		
 	}
 }
