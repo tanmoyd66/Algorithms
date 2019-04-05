@@ -201,6 +201,57 @@ public class BinarySearchTree<T extends Comparable<T>> extends BinaryTree<T> {
 		return null;
 	}
 	
+	
+	public static class BSTIterator<T extends Comparable<T>> {
+		enum Color { White, Gray, Black };
+		
+		Stack<Tuples.Pair<Node<T>, Color>> stack = new Stack<>();
+	    public BSTIterator(Node<T> root) {
+	        stack.push(new Tuples.Pair<BinaryTree.Node<T>, Color>(root, Color.White));
+	        next = root.value;
+	    }
+
+	    T next; boolean advanced = false;
+	    
+	    private void advance() {
+	    	while (!stack.isEmpty()) {
+	    		Tuples.Pair<BinaryTree.Node<T>, Color> curr = stack.peek();
+	    		if (curr.elem2 == Color.White) {
+	    			if (curr.elem1.left != null)
+	    				stack.push(new Tuples.Pair<BinaryTree.Node<T>, Color>(curr.elem1.left, Color.White));
+	    			curr.elem2 = Color.Gray;
+	    		} else if (curr.elem2 == Color.Gray) {
+	    			if (curr.elem1.right != null)
+	    				stack.push(new Tuples.Pair<BinaryTree.Node<T>, Color>(curr.elem1.right, Color.White));
+    				curr.elem2 = Color.Black;
+    				next = curr.elem1.value;
+    				return;
+	    		} else {
+	    			stack.pop();
+	    		}	    			
+	    	}
+	    	next = null;
+	    }
+	    
+	    public T next() {
+	    	advanced = false;
+	    	return next;
+	    }
+	    
+	    public boolean hasNext() {
+	    	if (!advanced)
+	    		advance();
+    		return next != null;
+	    }
+	}
+
+	/**
+	 * Your BSTIterator object will be instantiated and called as such:
+	 * BSTIterator obj = new BSTIterator(root);
+	 * int param_1 = obj.next();
+	 * boolean param_2 = obj.hasNext();
+	 */
+	
 	public static void main(String[] args) {
 		try {
 			// Insert 
@@ -225,6 +276,12 @@ public class BinarySearchTree<T extends Comparable<T>> extends BinaryTree<T> {
 			// Find the successor
 			Integer succOf = 145, succ = bst.nextLargest(succOf);
 			System.out.printf("Successor of %d is %d\n", succOf, succ);
+			
+			// Iterate
+			BSTIterator<Integer> bsti = new BSTIterator<>(bst.root);
+			while (bsti.hasNext())
+				System.out.printf("%d ", bsti.next());
+			System.out.println();
 		} catch (Exception ex) {
 			System.out.println(ex.toString());
 		}
